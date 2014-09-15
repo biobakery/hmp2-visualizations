@@ -1,0 +1,9 @@
+PC.354	1	/vagrant/data/ccfa/users/kbayer/test/mibc_products/PC.635/otus/otu_table.biom
+PC.355	2	/vagrant/data/ccfa/users/kbayer/test/mibc_products/PC.634/otus/otu_table.biom
+PC.356	3	/vagrant/data/ccfa/users/kbayer/test/mibc_products/PC.481/otus/otu_table.biom
+PC.481	4	/vagrant/data/ccfa/users/kbayer/test/mibc_products/PC.607/otus/otu_table.biom
+PC.593	5	/vagrant/data/ccfa/users/kbayer/test/mibc_products/PC.355/otus/otu_table.biom
+PC.607	6	/vagrant/data/ccfa/users/kbayer/test/mibc_products/PC.354/otus/otu_table.biom
+PC.634	7	/vagrant/data/ccfa/users/kbayer/test/mibc_products/PC.636/otus/otu_table.biom
+PC.635	8	/vagrant/data/ccfa/users/kbayer/test/mibc_products/PC.593/otus/otu_table.biom
+PC.636	9	/vagrant/data/ccfa/users/kbayer/test/mibc_products/PC.356/otus/otu_table.biom

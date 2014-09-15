@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+  <head>
+    <title>HMP2 Project Visualizations - Stacked Bar Charts</title>
+
+    <style>
+      .axis {
+	  font: 10px sans-serif;
+      }
+
+      .axis path,
+      .axis line {
+	  fill: none;
+	  stroke: #000;
+	  shape-rendering: crispEdges;
+      }
+
+      .x.axis path {
+	  display: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    % include('sources.frag')
+    <script>
+      % include('plot_bar.js')
+    </script>
+  </body>
+</html>
