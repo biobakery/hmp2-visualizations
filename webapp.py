@@ -13,24 +13,25 @@ from bottle import (
 import settings
 
 here = os.path.dirname(os.path.realpath(__file__))
+mount = os.environ.get('BOTTLE_MOUNT', '')
 
-@get('/')
-@get('//')
+@get(mount+'/')
+@get(mount+'//')
 @view('index.html')
 def index():
     return dict()
 
 
-@get('/bar.html')
-@get('//bar.html')
+@get(mount+'/bar.html')
+@get(mount+'//bar.html')
 @view('bar.html')
 def plot_bar():
     return dict()
 
 
 
-@get('/bar.txt')
-@get('//bar.txt')
+@get(mount+'/bar.txt')
+@get(mount+'//bar.txt')
 def bar():
     return static_file(
         'otu_table_merged_L2.txt',
@@ -40,16 +41,16 @@ def bar():
     )
 
 
-@get('/pcoa.html')
-@get('//pcoa.html')
+@get(mount+'/pcoa.html')
+@get(mount+'//pcoa.html')
 @view('pcoa.html')
 def plot_pcoa():
     return dict()
 
 
 
-@get('/pcoa.txt')
-@get('//pcoa.txt')
+@get(mount+'/pcoa.txt')
+@get(mount+'//pcoa.txt')
 def pcoa():
     return static_file(
         "otu_table_merged.biom.pcl_pcoa_coords.txt",
