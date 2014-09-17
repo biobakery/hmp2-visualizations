@@ -34,10 +34,10 @@ def plot_bar():
 @get(mount+'//bar.txt')
 def bar():
     return static_file(
-        'otu_table_merged_L2.txt',
+        'otu_table_merged_meta_L2.txt',
         root = os.path.join(here,
                             settings.products_dir,
-                            'otu_table_merged.biom_barcharts')
+                            'otu_table_merged_meta.biom_barcharts')
     )
 
 
@@ -53,7 +53,7 @@ def plot_pcoa():
 @get(mount+'//pcoa.txt')
 def pcoa():
     return static_file(
-        "otu_table_merged.biom.pcl_pcoa_coords.txt",
+        "otu_table_merged_meta.biom.pcl_pcoa_coords.txt",
         root = os.path.join(here, settings.products_dir)
     )
 
