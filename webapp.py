@@ -13,7 +13,7 @@ from bottle import (
 import settings
 
 here = os.path.dirname(os.path.realpath(__file__))
-mount = os.environ.get('BOTTLE_MOUNT', '')
+mount = settings.prefix_url
 
 @get(mount+'/')
 @get(mount+'//')
