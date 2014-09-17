@@ -1,3 +1,4 @@
+#SampleID	SortKey	DataFile
 PC.354	1	/vagrant/data/ccfa/users/kbayer/test/mibc_products/PC.635/otus/otu_table.biom
 PC.355	2	/vagrant/data/ccfa/users/kbayer/test/mibc_products/PC.634/otus/otu_table.biom
 PC.356	3	/vagrant/data/ccfa/users/kbayer/test/mibc_products/PC.481/otus/otu_table.biom
