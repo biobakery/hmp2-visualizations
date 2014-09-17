@@ -3,9 +3,41 @@
 <html>
   <head>
     <title>HMP2 Project Visualizations - Principal Coordinates Plot</title>
+    <style>
+      .axis path,
+      .axis line {
+	  fill: none;
+	  stroke: #222;
+	  shape-rendering: crispEdges;
+      }
+
+      .dot {
+	  stroke: #000;
+      }
+
+      div#search {
+	  margin: 20px 10px;
+      }
+
+      input#sel_sample {
+	  width: 25em;
+      }
+
+      #searchresults {
+	  display: inline;
+      }
+
+    </style>
+
   </head>
 
   <body>
+    <div id="search">
+      <input type="text" id="sel_sample" 
+	     placeholder="Type in subject ID here"
+	     onkeyup="search(this);">
+      <div id="searchresults"></div>
+    </div>
     % include('sources.frag')
     <script>
       % include('plot_pcoa.js')

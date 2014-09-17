@@ -79,7 +79,8 @@ function perc(num, decs){
 d3.tsv("bar.txt", identity, function(err, data){
     var parsed = data.map(decompose)
     , dims = init({nsubj: parsed[0].length})
-    , layers = d3.layout.stack()(parsed);
+    , stack = d3.layout.stack().order('inside-out')
+    , layers = stack(parsed);
 
     dims.x.domain(layers[0].map(function(row){ return row.x; }));
 
