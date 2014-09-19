@@ -1,3 +1,4 @@
+import json
 import operator
 
 from anadama_workflows.pipelines import VisualizationPipeline
@@ -25,6 +26,15 @@ DOIT_CONFIG = {
 
 def task_gen():
     pipeline.configure()
+    save_state_file(pipeline.task_dicts)
     for d in pipeline.task_dicts:
         yield d
 
+def save_state_file(list_of_task_dicts):
+    with open(settings.statefile, 'w') as output_statefile_handle:
+        return json.dump(
+            dict([ (task['name'].split(':')[0], task['targets']) 
+                   for task in list_of_task_dicts]),
+            output_statefile_handle
+        )
+        

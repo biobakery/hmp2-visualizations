@@ -3,16 +3,107 @@
 <html>
   <head>
     <title>HMP2 Project Visualizations</title>
+    % include('extra_head.frag')
+
+    <style>
+        div#search {
+	    margin: 20px 10px;
+	}
+    
+	input#sel_sample {
+	    width: 25em;
+	}
+    </style>
+
   </head>
 
-  <body>
+  <body onload="window.handle_hmp2_cookie();">
     % include('sources.frag')
 
-   <h3>HMP2 Project Visualizations</h3>
-   <ul>
-     <li><a href="bar.html">Stacked Bar Charts</a></li>
-     <li><a href="pcoa.html">Principal Coordinates Plots</a></li>
-   </ul>
+    % include('header.frag')
 
+    <div class="row">
+      <div class="col-md-1 left"></div>
+
+      <div class="col-md-8 middle">
+	<h2><b>Your IBD Multi&#39;omics microbiome</b></h2>
+
+	<p>Welcome!</p>
+	<p>Thank you for participating in the IBD Multi'omics
+	project. Here, you can explore the information that the
+	project has collected so far about your gut microbes and those
+	of the other project participants. This page provides a
+	summary of your gut microbial information collected over the
+	course of the study. It also contextualizes your gut in the
+	larger population of all IBD Multi'omics participants. Your
+	results contribute greatly to our understanding of Crohn's
+	disease and ulcerative colitis, and we hope that the project
+	will help to generate new treatments for these conditions.</p>
+
+	<p>The human gut microbiota is one of the most complex
+	reservoirs of microbial diversity, hosting hundreds of
+	bacterial species. Large groups of related species are called
+	phyla, and only a few of these are common in the human
+	microbiome:
+	  <a href="http://en.wikipedia.org/wiki/Firmicutes"
+	     target="_blank"> Firmicutes
+	  </a>,
+	  <a href="http://en.wikipedia.org/wiki/Bacteroidetes"
+	     target="_blank"> Bacteroidetes
+	  </a>,
+	 and <a href="http://en.wikipedia.org/wiki/Actinobacteria"
+	 target="_blank">Actinobacteria</a> represent about 75% of the
+	 organisms within the gut.</p>
+	<p></p>
+
+	<br />
+	<h4>Please fill in your Subject ID to view your results</h4>
+	<div id="search" class="text-center">
+	  <input type="text" id="sel_sample" 
+		 placeholder="Enter subject ID">
+	  <button onclick="window.login(this);" 
+		  class="btn btn-primary"
+		  id="logged_in_button">
+	    <span class="glyphicon glyphicon-off" id="logged_in"></span>
+	  </button>
+	  <button onclick="window.clear_hmp2_cookie()" 
+		  class="btn btn-danger">
+	    <span class="glyphicon glyphicon-remove"</span>
+	  </button>
+	</div>
+	<br />
+	<ul>
+	  <li><a href="bar.html">Your microbial abundance profile</a></li>
+	  <li>
+	    <a href="pcoa.html">Your gut similarity compared to others</a>
+	  </li>
+	</ul>
+
+	<br />
+	<p><strong>
+	  NOTE: The information provided to you by this study is not
+	  an appropriate substitute for professional clinical advice,
+	  diagnosis, or treatment. If you wish to have your symptoms
+	  analyzed clinically, we recommend speaking with your
+	  physician.
+	</strong></p>
+
+	<p><strong> 
+	    For questions regarding the IBDMDB project, goals,
+	    procedures, and further information, please contact
+	    <a href="mailto: ibdmdb@googlegroups.com">
+	      ibdmdb@googlegroups.com
+	    </a>.
+	</strong></p>
+
+	<script>
+
+	  % include('index_scripts.js')
+
+	</script>
+
+	
+      </div>
+    </div>
   </body>
 </html>

@@ -1,3 +1,46 @@
+window.ids = new Array;
+
+window.search = function(el){
+    backtoblack();
+    if (!el.value){return;}
+    var searchterm = el.value
+    , hits = window.ids.filter(function(id){ 
+	return id.lastIndexOf(searchterm, 0) === 0; });
+
+    message(hits.length);
+
+    if (hits.length <= 0){return;}
+    hit_groups = hits.map(function (h){ return document.getElementById(h); });
+    console.log([searchterm, hits, hit_groups]);
+    d3.selectAll(hit_groups).
+	style("text-decoration", "underline").
+	style("stroke", "black");
+}
+
+function backtoblack(){
+    d3.selectAll(".taxon").
+	style("text-decoration", "none").
+	style("stroke", "none");
+}
+
+function message(nhits){
+    var el = document.getElementById("searchresults")
+    , basemsg = "Found "+nhits+" result"
+    , msg = (nhits == 1)? basemsg+"." : basemsg+"s.";
+
+    if (el.childNodes.length > 0)
+	for (i=0; i<=el.childNodes.length; i+=1)
+	    el.childNodes[i].remove();
+    el.appendChild(document.createTextNode(msg));
+}
+
+window.fillsearchbox = function(){
+    var el = document.getElementById('sel_sample')
+    , sample_id = window.hmp2_cookie().get();
+    el.value = sample_id;
+    el.onkeyup();
+}
+
 
 function init(args_obj){ 
     var margin = {top: 20, right: 20, bottom: 30, left: 40 }
@@ -13,7 +56,7 @@ function init(args_obj){
 
     var z = d3.scale.category10();
 
-    var svg = d3.select("body").append("svg").
+    var svg = d3.select("#plot_area").append("svg").
 	attr("width", width + margin.left + margin.right).
 	attr("height", height + margin.top + margin.bottom).
 	append("svg:g").
@@ -82,6 +125,8 @@ d3.tsv("bar.txt", identity, function(err, data){
     , stack = d3.layout.stack().order('inside-out')
     , layers = stack(parsed);
 
+    window.ids = layers[0].map(function(row){ return row.x; });
+
     dims.x.domain(layers[0].map(function(row){ return row.x; }));
 
     var taxon = dims.svg.selectAll("g.taxon").
@@ -109,6 +154,7 @@ d3.tsv("bar.txt", identity, function(err, data){
 	attr("y", dims.height + 10).
 	attr("text-anchor", "middle").
 	attr("dy", ".71em").
+	attr("id", identity).
 	text(identity);
 
     var rule = dims.svg.selectAll("g.rule").
@@ -127,5 +173,7 @@ d3.tsv("bar.txt", identity, function(err, data){
 	attr("x", dims.width - dims.margin.right - dims.margin.left).
 	attr("dy", ".35em").
 	text(function(num){ return perc(1-num); });
+
+    document.getElementById("sel_sample").onkeyup();
 });
 

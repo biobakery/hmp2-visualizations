@@ -1,3 +1,5 @@
+window._index = new Array;
+
 var margin = {top: 20, right: 20, bottom: 30, left: 40 }
 , width = 960 - margin.left - margin.right
 , height = 500 - margin.top - margin.bottom;
@@ -16,7 +18,7 @@ var yAxis = d3.svg.axis().
     scale(y).
     orient("left");
 
-var svg = d3.select("body").append("svg").
+var svg = d3.select("#plot_area").append("svg").
     attr("width", width + margin.left + margin.right).
     attr("height", height + margin.top + margin.bottom).
     append("svg:g").
@@ -68,6 +70,13 @@ function message(nhits){
     el.appendChild(document.createTextNode(msg));
 }
 
+function fillsearchbox(){
+    var el = document.getElementById('sel_sample')
+    , sample_id = window.hmp2_cookie().get();
+    el.value = sample_id;
+    el.onkeyup();
+}
+
 d3.csv("pcoa.txt", numerize, function(err, data) {
     window._index = new Array;
     window.data = data;
@@ -108,4 +117,5 @@ d3.csv("pcoa.txt", numerize, function(err, data) {
 	attr("indexKey", function(row){ return row.id; }).
 	each(index);
 
+    document.getElementById("sel_sample").onkeyup();
 });
