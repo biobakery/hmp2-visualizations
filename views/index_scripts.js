@@ -38,11 +38,24 @@ window.login = function(){
     window.hmp2_cookie().set(sample_id);
     $("#logged_in").removeClass("glyphicon-off").addClass("glyphicon-ok");
     $("#logged_in_button").removeClass("btn-primary").addClass("btn-success");
+    window.fillplots();
 }
 
 window.clear_hmp2_cookie = function(){
-    var c = window.hmp2_cookie();
-
-    c.clear();
+    window.hmp2_cookie().clear();
     document.getElementById("sel_sample").value = "";
+    $("#logged_in").removeClass("glyphicon-ok").addClass("glyphicon-off");
+    $("#logged_in_button").removeClass("btn-success").addClass("btn-primary");
+    window.clearplots();
+}
+
+window.clearplots = function() {
+    $(".plot_area").empty();
+    $(".plot_caption").css("display", "none");
+}
+
+window.fillplots = function() {
+    $(".plot_caption").css("display", "");
+    window.plot_bar();
+    window.plot_pcoa();
 }

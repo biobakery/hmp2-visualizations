@@ -2,3 +2,6 @@
 *.pyc
 .doit*
 products
+css
+fonts
+js

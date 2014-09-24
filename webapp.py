@@ -28,19 +28,29 @@ def get_pipeline_state():
 pipeline_state = get_pipeline_state()
 mount = settings.web.prefix_url
 
+if settings.debug:
+    @get('/js/<filename:re:.*\.js>')
+    @get('/mezzanine/js/<filename:re:.*\.js>')
+    def javascripts(filename):
+        print filename
+        return static_file(filename, root='js')
+        
+    @get('/css/<filename:re:.*\.css>')
+    def stylesheets(filename):
+        print filename
+        return static_file(filename, root='css')
+        
+    @get('/fonts/<filename>')
+    def stylesheets(filename):
+        print filename
+        return static_file(filename, root='fonts')
+
+
 @get(mount+'/')
 @get(mount+'//')
 @view('index.html')
 def index():
     return {'settings': settings.web}
-
-
-@get(mount+'/bar.html')
-@get(mount+'//bar.html')
-@view('bar.html')
-def plot_bar():
-    return {'settings': settings.web}
-
 
 
 @get(mount+'/bar.txt')
@@ -52,15 +62,6 @@ def bar():
         os.path.basename(to_serve),
         root = os.path.dirname(to_serve)
     )
-
-
-@get(mount+'/pcoa.html')
-@get(mount+'//pcoa.html')
-@view('pcoa.html')
-def plot_pcoa():
-    return {'settings': settings.web}
-
-
 
 @get(mount+'/pcoa.txt')
 @get(mount+'//pcoa.txt')
