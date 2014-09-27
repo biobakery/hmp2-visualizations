@@ -83,6 +83,12 @@ window.plot_bar = function() {
 	return decomposer;
     }
 
+    function sort(arr, attr){
+	return arr.sort( function(a, b){ 
+	    return a[attr] > b[attr]? 1 : -1;
+	});
+    }
+
     function perc(num, decs){ 
 	decs = decs === undefined? 0 : decs
 	return (num*100).toFixed(decs) + " %";
@@ -91,11 +97,10 @@ window.plot_bar = function() {
     d3.tsv("bar.txt", identity, function(err, data){
 	var searchterm = window.hmp2_cookie().get()
 	, parsed = data.map( decompose(search(searchterm)) )
+	, parsed = parsed.map( function(r){ return sort(r, "x"); } )
 	, dims = init({nsubj: parsed[0].length})
 	, stack = d3.layout.stack().order('inside-out')
 	, layers = stack(parsed);
-
-	window.ids = layers[0].map(function(row){ return row.x; });
 
 	dims.x.domain(layers[0].map(function(row){ return row.x; }));
 

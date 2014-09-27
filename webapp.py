@@ -76,6 +76,16 @@ def pcoa():
     )
 
 
+@get(mount+'/avg.txt')
+@get(mount+'//avg.txt')
+def pcoa():
+    to_serve = pipeline_state['average_by_rows'][0]
+    return static_file(
+        os.path.basename(to_serve),
+        root = os.path.dirname(to_serve)
+    )
+
+
 def main():
     run(host=settings.web.host, port=settings.web.port,
         debug=settings.debug, reloader=settings.debug)

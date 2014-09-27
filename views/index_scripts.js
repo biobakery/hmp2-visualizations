@@ -58,4 +58,5 @@ window.fillplots = function() {
     $(".plot_caption").css("display", "");
     window.plot_bar();
     window.plot_pcoa();
+    window.plot_avg();
 }

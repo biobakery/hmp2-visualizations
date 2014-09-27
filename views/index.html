@@ -118,8 +118,7 @@
 	<div class="plot_caption row" style="display: none;">
 	  <div class="col-md-6 left">
 	    <h4>Your average microbial profile</h4>
-	    <img src="https://ibdmdb.org/static/media/uploads/patient/fig5_bar_graph2.png" 
-		 height="250"/>
+	    <div class="plot_area" id="avg_chart_area"></div>
 	    <p>
 	      This bar graph shows the average abundance of each major
 	      group
@@ -128,7 +127,7 @@
 	      averages over all other participants in the study. It's
 	      normal for everyone to have big differences in our
 	      microbiomes, both between different people and in our
-	      own guts from day to day, even during health.
+	      own guts from day to day, even in health.
 	    </p>
 	  </div>
 
@@ -172,6 +171,8 @@
 	  % include('plot_bar.js')
 
 	  % include('plot_pcoa.js')
+
+	  % include('plot_avg.js')
 
 	</script>
 
