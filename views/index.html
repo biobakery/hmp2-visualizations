@@ -3,16 +3,181 @@
 <html>
   <head>
     <title>HMP2 Project Visualizations</title>
+    % include('extra_head.frag')
+
+    <style>
+        div#search {
+	    margin: 20px 10px;
+	}
+    
+	input#sel_sample {
+	    width: 25em;
+	}
+
+        .axis path,
+	.axis line {
+	    fill: none;
+	    stroke: #222;
+	    shape-rendering: crispEdges;
+	}
+	
+	.dot {
+	    stroke: #000;
+	}
+    </style>
+
   </head>
 
-  <body>
+  <body onload="window.handle_hmp2_cookie();">
     % include('sources.frag')
 
-   <h3>HMP2 Project Visualizations</h3>
-   <ul>
-     <li><a href="bar.html">Stacked Bar Charts</a></li>
-     <li><a href="pcoa.html">Principal Coordinates Plots</a></li>
-   </ul>
+    % include('header.frag')
 
+    <div class="row">
+      <div class="col-md-1 left"></div>
+
+      <div class="col-md-8 middle">
+	<h2><b>Your IBD Multi&#39;omics microbiome</b></h2>
+
+	<p>Welcome!</p>
+	<p>Thank you for participating in the IBD Multi'omics
+	project. Here, you can explore the information that the
+	project has collected so far about your gut microbes and those
+	of the other project participants. This page provides a
+	summary of your gut microbial information collected over the
+	course of the study. It also contextualizes your gut in the
+	larger population of all IBD Multi'omics participants. Your
+	results contribute greatly to our understanding of Crohn's
+	disease and ulcerative colitis, and we hope that the project
+	will help to generate new treatments for these conditions.</p>
+
+	<p>The human gut microbiota is one of the most complex
+	reservoirs of microbial diversity, hosting hundreds of
+	bacterial species. Large groups of related species are called
+	phyla, and only a few of these are common in the human
+	microbiome:
+	  <a href="http://en.wikipedia.org/wiki/Firmicutes"
+	     target="_blank"> Firmicutes
+	  </a>,
+	  <a href="http://en.wikipedia.org/wiki/Bacteroidetes"
+	     target="_blank"> Bacteroidetes
+	  </a>,
+	 and <a href="http://en.wikipedia.org/wiki/Actinobacteria"
+	 target="_blank">Actinobacteria</a> represent about 75% of the
+	 organisms within the gut.</p>
+	<p></p>
+
+	<br />
+	<h4>Please fill in your Subject ID to view your results</h4>
+	<div id="search" class="text-center">
+	  <input type="text" id="sel_sample" 
+		 placeholder="Enter subject ID">
+	  <button onclick="window.login();" 
+		  class="btn btn-primary"
+		  id="logged_in_button">
+	    <span class="glyphicon glyphicon-off" id="logged_in"></span>
+	  </button>
+	  <button onclick="window.clear_hmp2_cookie()" 
+		  class="btn btn-danger">
+	    <span class="glyphicon glyphicon-remove"</span>
+	  </button>
+	</div>
+	<br />
+
+	<div class="plot_caption" style="display: none;">
+	  <h4>Your microbial profile to date</h4>
+	  <div id="bar_searchresults"></div>
+	  <div class="plot_area" id="bar_chart_area"></div>
+	  <p>
+	    This diagram represents the proportions of different groups
+	    (phyla) of microbes in your gut from to most recent samples
+	    you've provided. For security and privacy reasons, we're not
+	    allowed to label these samples with specific dates, so up to the
+	    12 most recent samples are shown. This allows you to see how
+	    your own microbial community varies over time.
+	  </p>
+	</div>
+	<br />
+
+	<div class="plot_caption" style="display: none;">
+	  <h4>Your gut similarity compared to others</h4>
+	  <div id="pcoa_searchresults"></div>
+	  <div class="plot_area" id="pcoa_chart_area"></div>
+	  <p>This diagram shows all stool samples collected from all
+	    participants in the IBD Multi'omics project. Each dot represents a
+	    single sample, and the distance between points indicates how
+	    dissimilar they are. The closer together two samples' points
+	    appear, the more similar their microbial communities are. Your
+	    samples as collected over time are marked in red, so you can see
+	    how your own gut microbiome changes over time and in relation to
+	    other participants' guts.</p>
+	  </div>
+	<br />
+
+
+	<div class="plot_caption row" style="display: none;">
+	  <div class="col-md-6 left">
+	    <h4>Your average microbial profile</h4>
+	    <div class="plot_area" id="avg_chart_area"></div>
+	    <p>
+	      This bar graph shows the average abundance of each major
+	      group
+	      (<a href="http://en.wikipedia.org/wiki/Phylum">phylum</a>)
+	      of microbes in your microbiome as compared to their
+	      averages over all other participants in the study. It's
+	      normal for everyone to have big differences in our
+	      microbiomes, both between different people and in our
+	      own guts from day to day, even in health.
+	    </p>
+	  </div>
+
+	  <div class="col-md-6 right">
+	    <h4>Your baseline and most recent dietary profile</h4>
+	    <img src="https://ibdmdb.org/static/media/uploads/patient/fig3_diet_with_blue_bars.png" 
+		 height="250", width="350"/>
+	    <p>
+	      This plot shows the range of how much each food item is
+	      consumed by all study participants. The amount that you
+	      indicated during your first, long Food Frequency
+	      Questionnaire is marked in red within each range. The
+	      amount that you indicated during your most recent, short
+	      questionnaire delivered with your latest sample is
+	      marked in blue.
+	    </p>
+	  </div>
+	</div>
+	<br />
+
+	<p><strong>
+	  NOTE: The information provided to you by this study is not
+	  an appropriate substitute for professional clinical advice,
+	  diagnosis, or treatment. If you wish to have your symptoms
+	  analyzed clinically, we recommend speaking with your
+	  physician.
+	</strong></p>
+
+	<p><strong> 
+	    For questions regarding the IBDMDB project, goals,
+	    procedures, and further information, please contact
+	    <a href="mailto: ibdmdb@googlegroups.com">
+	      ibdmdb@googlegroups.com
+	    </a>.
+	</strong></p>
+
+	<script>
+
+	  % include('index_scripts.js')
+
+	  % include('plot_bar.js')
+
+	  % include('plot_pcoa.js')
+
+	  % include('plot_avg.js')
+
+	</script>
+
+	
+      </div>
+    </div>
   </body>
 </html>
