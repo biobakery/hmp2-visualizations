@@ -148,7 +148,7 @@ window.plot_bar = function() {
 	    style("stroke-opacity", 0.2);
 
 	rule.append("svg:text").
-	    attr("x", dims.width - dims.margin.right - dims.margin.left).
+	    attr("x", -30).
 	    attr("dy", ".35em").
 	    text(function(num){ return perc(1-num); });
     });
