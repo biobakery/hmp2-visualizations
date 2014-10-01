@@ -1,10 +1,21 @@
-#SampleID	SortKey	DataFile
-PC.354	1	/vagrant/data/ccfa/users/kbayer/test/mibc_products/PC.635/otus/otu_table.biom
-PC.355	2	/vagrant/data/ccfa/users/kbayer/test/mibc_products/PC.634/otus/otu_table.biom
-PC.356	3	/vagrant/data/ccfa/users/kbayer/test/mibc_products/PC.481/otus/otu_table.biom
-PC.481	4	/vagrant/data/ccfa/users/kbayer/test/mibc_products/PC.607/otus/otu_table.biom
-PC.593	5	/vagrant/data/ccfa/users/kbayer/test/mibc_products/PC.355/otus/otu_table.biom
-PC.607	6	/vagrant/data/ccfa/users/kbayer/test/mibc_products/PC.354/otus/otu_table.biom
-PC.634	7	/vagrant/data/ccfa/users/kbayer/test/mibc_products/PC.636/otus/otu_table.biom
-PC.635	8	/vagrant/data/ccfa/users/kbayer/test/mibc_products/PC.593/otus/otu_table.biom
-PC.636	9	/vagrant/data/ccfa/users/kbayer/test/mibc_products/PC.356/otus/otu_table.biom
+#SampleID	SortKey	DataFile	Hash
+2001.0	0	/vagrant/data/hmp2_sample_otus/2001.0.biom	HpfYCLe.0
+2001.1	1	/vagrant/data/hmp2_sample_otus/2001.1.biom	HpfYCLe.1
+2001.2	2	/vagrant/data/hmp2_sample_otus/2001.2.biom	HpfYCLe.2
+2001.3	3	/vagrant/data/hmp2_sample_otus/2001.3.biom	HpfYCLe.3
+2001.4	4	/vagrant/data/hmp2_sample_otus/2001.4.biom	HpfYCLe.4
+2001.5	5	/vagrant/data/hmp2_sample_otus/2001.5.biom	HpfYCLe.5
+2001.6	6	/vagrant/data/hmp2_sample_otus/2001.6.biom	HpfYCLe.6
+2001.7	7	/vagrant/data/hmp2_sample_otus/2001.7.biom	HpfYCLe.7
+2001.8	8	/vagrant/data/hmp2_sample_otus/2001.8.biom	HpfYCLe.8
+2001.9	9	/vagrant/data/hmp2_sample_otus/2001.9.biom	HpfYCLe.9
+2001.10	10	/vagrant/data/hmp2_sample_otus/2001.10.biom	HpfYCLe.10
+2001.11	11	/vagrant/data/hmp2_sample_otus/2001.11.biom	HpfYCLe.11
+2001.12	12	/vagrant/data/hmp2_sample_otus/2001.12.biom	HpfYCLe.12
+2001.13	13	/vagrant/data/hmp2_sample_otus/2001.13.biom	HpfYCLe.13
+2001.14	14	/vagrant/data/hmp2_sample_otus/2001.14.biom	HpfYCLe.14
+2001.15	15	/vagrant/data/hmp2_sample_otus/2001.15.biom	HpfYCLe.15
+2001.16	16	/vagrant/data/hmp2_sample_otus/2001.16.biom	HpfYCLe.16
+2001.17	17	/vagrant/data/hmp2_sample_otus/2001.17.biom	HpfYCLe.17
+2001.18	18	/vagrant/data/hmp2_sample_otus/2001.18.biom	HpfYCLe.18
+2001.19	19	/vagrant/data/hmp2_sample_otus/2001.19.biom	HpfYCLe.19

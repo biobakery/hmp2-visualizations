@@ -5,6 +5,7 @@ debug = True
 map_file = "./map.txt"
 products_dir = "products"
 statefile = "pipeline_state.json"
+diet_data = "./diet.txt"
 
 class web:
     host = "0.0.0.0"
