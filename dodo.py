@@ -1,8 +1,6 @@
 import os
 import re
-import sys
 import json
-import operator
 
 from anadama import util
 from anadama_workflows.pipelines import VisualizationPipeline
@@ -81,7 +79,7 @@ def diet_workflow(data_fname, metadata):
             for line in f_in:
                 match = re.match(r'^(\d+)(\t.*)', line)
                 if match and match.group(1) in idx:
-                    new_name = idx[match.group(1)] + str(i)
+                    new_name = "%s.%i" %(idx[match.group(1)], i)
                     print >> f_out, new_name+match.group(2)
                     i += 1
 

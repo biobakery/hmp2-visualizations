@@ -1,6 +1,6 @@
 window.plot_avg = function(){
 
-    var margin = {top: 20, right: 20, bottom: 70, left: 40 }
+    var margin = {top: 20, right: 20, bottom: 100, left: 40 }
     , width =  450 - margin.left - margin.right
     , height = 450 - margin.top - margin.bottom
     , has_avg = false
@@ -51,9 +51,11 @@ window.plot_avg = function(){
 	    attr("y", function(row){ return y(row.value); }).
 	    attr("height", function(row){ return height-y(row.value); });
 
-	d3.selectAll(".legend text").
+	d3.selectAll(".avg_legend text").
 	    data(["Average", el.value]).
 	    text(identity);
+
+	window.update_diet( document.getElementById("diet_chart_selector") );
     }
 
 
@@ -161,8 +163,6 @@ window.plot_avg = function(){
 	, samplenames = bar_data[0].map( getattr("x") ).sort()
 	, latest = samplenames[samplenames.length-1];
 
-	window.data = data;
-
 	x0.domain(data.map(getattr("x")));
 	x1.domain(["Average", latest]).rangeRoundBands([0, x0.rangeBand()]);
 	y.domain(
@@ -222,10 +222,10 @@ window.plot_avg = function(){
 	    attr("selected", function(row){ return row == latest; }).
 	    text(identity);
 	    
-	var legend = svg.selectAll(".legend").
+	var legend = svg.selectAll(".avg_legend").
 	    data(["Average", latest]).
 	    enter().append("g").
-	    attr("class", "legend").
+	    attr("class", "avg_legend").
 	    attr("transform", function(row, idx){ 
 		return "translate(0,"+(idx*20)+")"; 
 	    });

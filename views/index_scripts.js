@@ -38,6 +38,7 @@ window.login = function(){
     window.hmp2_cookie().set(sample_id);
     $("#logged_in").removeClass("glyphicon-off").addClass("glyphicon-ok");
     $("#logged_in_button").removeClass("btn-primary").addClass("btn-success");
+    window.clearplots();
     window.fillplots();
 }
 
@@ -59,4 +60,5 @@ window.fillplots = function() {
     window.plot_bar();
     window.plot_pcoa();
     window.plot_avg();
+    window.plot_diet();
 }
