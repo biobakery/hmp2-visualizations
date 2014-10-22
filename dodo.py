@@ -43,26 +43,6 @@ def rename_biom_id(fname, sample_id):
     }
 
 
-def average_by_rows(in_fname, out_fname):
-
-    def run():
-        with open(in_fname) as av_f, open(out_fname, 'w') as out_f:
-            av_f.readline() # skip the header line
-            print >> out_f, "\t".join(("Taxon", "Average"))
-            for row in av_f:
-                fields = row.split()
-                key, vals = fields[0], map(float, fields[1:])
-                print >> out_f, "%s\t%.5f"%(key, sum(vals)/len(vals))
-        
-
-    return {
-        'name': 'average_by_rows:'+out_fname,
-        'file_dep': [in_fname],
-        'targets': [out_fname],
-        'actions': [run]
-    }
-
-
 def diet_workflow(data_fname, metadata):
     output = util.new_file("diet.txt", basedir=settings.products_dir)
     output_renamed_ids = util.new_file("diet_ids.txt", 
@@ -115,20 +95,7 @@ def task_gen():
     for d in pipeline.task_dicts:
         yield d
 
-    to_average = state['stacked_bar_chart'][0]
-    to_average = re.sub(r'\.biom$', '.txt', to_average).replace('L1', 'L2')
-    task_dict = average_by_rows(
-        to_average,
-        util.new_file("all_otus_average_L2.txt",
-                      basedir=settings.products_dir)
-    )
-    yield task_dict
-
-    state[ base(task_dict, 1) ] = task_dict['targets']
     save_state(state, file=settings.statefile)
-
-def base(task_dict, idx=0):
-    return task_dict['name'].split(':')[idx]
 
 def condense_state(list_of_task_dicts):
     return dict([ 
