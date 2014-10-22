@@ -66,8 +66,7 @@ window.plot_pcoa = function() {
 	    attr("class", "label").
 	    attr("x", width).
 	    attr("y", -6).
-	    style("text-anchor", "end").
-	    text("Dimension 1");
+	    style("text-anchor", "end");
 
 	svg.append("svg:g").
 	    attr("class", "y axis").
@@ -77,8 +76,7 @@ window.plot_pcoa = function() {
 	    attr("transform", "rotate(-90)").
 	    attr("y", 6).
 	    attr("dy", "0.71em").
-	    style("text-anchor", "end").
-	    text("Dimension 2");
+	    style("text-anchor", "end");
 
 	svg.selectAll(".dot").
 	    data(data).

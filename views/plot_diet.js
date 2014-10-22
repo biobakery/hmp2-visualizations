@@ -74,7 +74,7 @@ window.plot_diet = function(){
 	    style("fill", color(sample, diet));
 
 	d3.selectAll(".diet_legend text").
-	    data(["Average", diet+" at "+sample]).
+	    data(["Average", "Your response"]).
 	    text(identity);
 
     };
@@ -180,7 +180,7 @@ window.plot_diet = function(){
 	    style("stroke", "#000");
 
 	var legend = svg.selectAll(".diet_legend").
-	    data(["Average", firstdiet+" at "+firstsample]).
+	    data(["Average", "Your response"]).
 	      enter().append("g").
 	    attr("class", "diet_legend").
 	    attr("transform", function(_, i){ 
