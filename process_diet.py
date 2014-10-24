@@ -31,7 +31,7 @@ def score(s):
             return 1
     match = re.match(r'.*yesterday, (\d+) .*', s)
     if match:
-        if match.group(1) == 1:
+        if match.group(1) == "1":
             return 3
         else:
             return 4

@@ -103,6 +103,9 @@ def condense_state(list_of_task_dicts):
         for task in list_of_task_dicts 
     ])
 
+def base(task_dict, idx=0):
+    return task_dict['name'].split(':')[idx]
+
 def save_state(state_dict, file):
     with open(file, 'w') as output_statefile_handle:
         return json.dump(state_dict, output_statefile_handle)
