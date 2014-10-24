@@ -60,23 +60,25 @@ window.plot_diet = function(){
 
     window.update_diet = function(el){
 	var diet = el.value
-	, sample = document.getElementById("avg_chart_selector").value;
+	, sample = document.getElementById("avg_chart_selector").value
+	, i = +window.diet_data[0][sample][diet]
+	, ref = window.diet_rects[0][i]
+	, new_y = y(window.diet_data[1][diet].state[i]);
 
 	window.diet_rects.
 	    data(d3.range(5).map(function(i){ 
-		var cnt = window.diet_data[1][diet].state[i]; 
+		var cnt = window.diet_data[1][diet].state[i];
 		return cnt? cnt : 0
 	    })).
 	      transition().duration(750).
 	    delay(function(_, i){ return i*50; }).
 	    attr("y", function(row){ return y(row); }).
-	    attr("height", function(row){ return height-y(row); }).
-	    style("fill", color(sample, diet));
+	    attr("height", function(row){ return height-y(row); });
 
-	d3.selectAll(".diet_legend text").
-	    data(["Average", "Your response"]).
-	    text(identity);
-
+	d3.select("#diet_response_ind").
+	      transition().duration(750).
+	    attr("x", ref.x.baseVal.valueAsString).
+	    attr("y", new_y-15);
     };
 
     var resp_map = ["None", "Last 4 - 7 days", "Last 2 - 3 days", 
@@ -122,7 +124,7 @@ window.plot_diet = function(){
     d3.tsv("diet.txt", identity, function(err, data){
 	var categories = keys(data[0]).filter(not("#SampleID"))
 	, firstdiet = categories[0]
-	, firstsample = data[0]["#SampleID"]
+	, firstsample = data[data.length-1]["#SampleID"]
 	, attrcounter = new Object
 	, responses = new Object;
 
@@ -176,30 +178,18 @@ window.plot_diet = function(){
 	    attr("x", function(_, i){ return x(resp_map[i]); }).
 	    attr("y", function(row){ return y(row); }).
 	    attr("height", function(row){ return height-y(row); }).
-	    style("fill", color(firstsample, firstdiet)).
 	    style("stroke", "#000");
 
-	var legend = svg.selectAll(".diet_legend").
-	    data(["Average", "Your response"]).
-	      enter().append("g").
-	    attr("class", "diet_legend").
-	    attr("transform", function(_, i){ 
-		return "translate(0,"+(i*20)+")"; 
-	    });
+	var i = +responses[firstsample][firstdiet]
+	, ref = window.diet_rects[0][i];
 
-	legend.append("rect").
-	    attr("x", width-margin.left-18).
-	    attr("width", 18).
-	    attr("height", 18).
-	    style("fill", function(_, i){ return i>0? "#0a0" : "#000"; });
-
-	legend.append("text").
-	    attr("x", width-margin.left-24).
-	    attr("y", 9).
-	    attr("dy", ".35em").
-	    style("text-anchor", "end").
-	    text(identity);
-
+	d3.select(window.diet_rects[0].parentNode).
+	    append("text").
+	    attr("id", "diet_response_ind").
+	    attr("x", ref.x.baseVal.valueAsString).
+	    attr("y", ref.y.baseVal.value-15).
+	    attr("font-size", "30").
+	    text("You");
 
     });
 }
