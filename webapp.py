@@ -78,8 +78,17 @@ def pcoa():
 
 @get(mount+'/avg.txt')
 @get(mount+'//avg.txt')
-def pcoa():
+def avg():
     to_serve = pipeline_state['average_by_rows'][0]
+    return static_file(
+        os.path.basename(to_serve),
+        root = os.path.dirname(to_serve)
+    )
+
+@get(mount+'/diet.txt')
+@get(mount+'//diet.txt')
+def diet():
+    to_serve = pipeline_state['gen'][0]
     return static_file(
         os.path.basename(to_serve),
         root = os.path.dirname(to_serve)

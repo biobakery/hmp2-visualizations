@@ -23,7 +23,7 @@ window.plot_bar = function() {
 
     function init(args_obj){ 
 	var margin = {top: 20, right: 20, bottom: 30, left: 40 }
-	, width = (args_obj.nsubj * 105) - margin.left - margin.right
+	, width = 960 - margin.left - margin.right
 	, height = 500 - margin.top - margin.bottom;
 
 	var x = d3.scale.ordinal().
@@ -75,7 +75,7 @@ window.plot_bar = function() {
 	function decomposer(obj) {
 	    var x_bins = keys(obj).filter( gt(0,1) );
 	    return x_bins.map(function(bin){ 
-		return {     x: bin, 
+		return {     x: bin,
 			     y: +obj[bin],
 			     Taxon: obj.Taxon }; 
 	    }).filter(filter_func);
@@ -85,7 +85,9 @@ window.plot_bar = function() {
 
     function sort(arr, attr){
 	return arr.sort( function(a, b){ 
-	    return a[attr] > b[attr]? 1 : -1;
+	    var a = +a[attr].replace(/.*\.(\d+)$/, '$1')
+	    , b = +b[attr].replace(/.*\.(\d+)$/, '$1')
+	    return a > b? 1 : -1;
 	});
     }
 
@@ -123,16 +125,6 @@ window.plot_bar = function() {
 
 	rects.append("svg:title").
 	    text(function(row){ return row.Taxon + ": " + perc(row.y, 2); });
-
-	var label = dims.svg.selectAll("text").
-	    data(dims.x.domain()).
-	    enter().append("svg:text").
-	    attr("x", function(d){ return dims.x(d) + dims.x.rangeBand()/2 }).
-	    attr("y", dims.height + 10).
-	    attr("text-anchor", "middle").
-	    attr("dy", ".71em").
-	    attr("id", identity).
-	    text(identity);
 
 	var rule = dims.svg.selectAll("g.rule").
 	    data(dims.y.ticks(10)).

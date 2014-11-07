@@ -1,12 +1,8 @@
 window.plot_avg = function(){
 
-    var margin = {top: 20, right: 20, bottom: 70, left: 40 }
+    var margin = {top: 20, right: 20, bottom: 100, left: 40 }
     , width =  450 - margin.left - margin.right
-    , height = 450 - margin.top - margin.bottom
-    , has_avg = false
-    , avg_data = undefined
-    , has_bar = false
-    , bar_data = undefined;
+    , height = 450 - margin.top - margin.bottom;
 
     var x0 = d3.scale.ordinal().
 	rangeRoundBands([0, (width - margin.left - margin.right)], 0.1);
@@ -39,21 +35,23 @@ window.plot_avg = function(){
     
 
     window.update_bar = function(el) {
+	var avgkey = el.value.replace(/\.\d+$/, "")+"_Average";
 	window.avg_rects.
 	    data(function(bug){ 
-		return bug.abundances.filter(
-		    function(row){
-			return row.name == "Average" || row.name == el.value;
-		    });
+		return [ {k: "Study Average", v: bug.GlobalAverage},
+			 {k: "Your Average" , v: bug[avgkey]}, 
+			 {k: el.value,        v: bug[el.value]} ];
 	    }).
 	    transition().duration(750).
-	    delay(function(row, idx){ return idx * 50; }).
-	    attr("y", function(row){ return y(row.value); }).
-	    attr("height", function(row){ return height-y(row.value); });
+	    delay(function(_, i){ return i * 50; }).
+	    attr("y", function(row){ return y(row.v); }).
+	    attr("height", function(row){ return height-y(row.v); });
 
-	d3.selectAll(".legend text").
-	    data(["Average", el.value]).
+	d3.selectAll(".avg_legend text").
+	    data(["Study Average", "Your Average", latest]).
 	    text(identity);
+
+	window.update_diet( document.getElementById("diet_chart_selector") );
     }
 
 
@@ -83,48 +81,9 @@ window.plot_avg = function(){
 	}
     }
 
-    function getattrs(attrs){
-	return function(obj){
-	    return attrs.map( function(attr){ 
-		return obj[attr];
-	    });
-	}
-    }
-
-    function decompose(filter_func){
-	function decomposer(obj) {
-	    var x_bins = keys(obj).filter( gt(0,1) );
-	    return x_bins.map(function(bin){ 
-		return {     x: bin, 
-			     y: +obj[bin],
-			     Taxon: obj.Taxon }; 
-	    }).filter(filter_func);
-	};
-	return decomposer;
-    }
-
     function search(searchterm){
 	return function(item){
-	    return item.x.lastIndexOf(searchterm, 0) === 0;
-	}
-    }
-
-    function perc(num, decs){ 
-	decs = decs === undefined? 0 : decs
-	return (num*100).toFixed(decs) + " %";
-    }
-
-    function limiter(keywords, data){ 
-	if (keywords.has_avg){
-	    has_avg = true;
-	    avg_data = data;
-	}
-	if (keywords.has_bar){
-	    has_bar = true;
-	    bar_data = data;
-	}
-	if (has_bar && has_avg){ 
-	    plot(avg_data, bar_data);
+	    return item.lastIndexOf(searchterm, 0) === 0;
 	}
     }
 
@@ -132,88 +91,59 @@ window.plot_avg = function(){
 	return str.replace(/.*;p__(\S+)/, "$1");
     }
 
-    function merge(averages, samples) {
-	var merged = new Object
-	, samplekeys = samples[0].map( getattr("x") );
-
-	averages.map(function(row){ 
-	    merged[ phylum(row.Taxon) ] = {
-		data: [{ name: "Average",
-			 value: +row.Average }]
-	    };
-	});
-	samples.map(function(sample){
-	    return sample.map(function(bug){
-		merged[ phylum(bug.Taxon) ].data.push(
-		    { name: bug.x,
-		      value: +bug.y}
-		);
-	    });
-	});
-	return keys(merged).map(function(key){ 
-	    return { x: key,
-		     abundances: merged[key].data };
-	});
+    function by_last_number(a, b){
+	// For use with sort function
+	var a = +a.replace(/.*\.(\d+)$/, '$1')
+	, b = +b.replace(/.*\.(\d+)$/, '$1')
+	return a > b? 1 : -1;
     }
 
-    function plot(avg_data, bar_data){
-	var data = merge(avg_data, bar_data)
-	, samplenames = bar_data[0].map( getattr("x") ).sort()
-	, latest = samplenames[samplenames.length-1];
-
-	window.data = data;
-
-	x0.domain(data.map(getattr("x")));
-	x1.domain(["Average", latest]).rangeRoundBands([0, x0.rangeBand()]);
-	y.domain(
-	    [0, d3.max( 
-		Array.prototype.concat.apply([], bar_data).concat(avg_data),
-		function(row){ return row.y; })]
-	);
-
-	svg.append("g").
-	    attr("class", "x axis").
-	    attr("transform","translate(0,"+height+")").
-	    call(xAxis).
-	      selectAll("text").
-	    attr("transform", "rotate(35)").
-	    style("text-anchor", "start");
-
-	svg.append("g").
-	    attr("class", "y axis").
-	    call(yAxis);
-
-	var taxon = svg.selectAll(".taxon").
-	    data(data).
-	      enter().append("g").
-	    attr("class", "g").
-	    attr("transform", function(row){ 
-		return "translate("+x0(row.x)+",0)";});
-
-	var rects = taxon.selectAll("rect").
-	    data( function(bug){ 
-		return bug.abundances.filter(
-		    function(row){
-			return row.name == "Average" || row.name == latest;
-		    });
-	    }).
-	      enter().append("rect").
-	    attr("width", x1.rangeBand()).
-	    attr("x", function(row){ return x1(row.name); }).
-	    attr("y", function(row){ return y(row.value); }).
-	    attr("height", function(row){ return height-y(row.value); }).
-	    style("fill", function(row){ return color(row.name); });
-
-	window.avg_rects = rects;
-
+    function is_numeric(item){
+	return !isNaN(parseFloat(item)) && isFinite(item);
     }
 
+    function grep(regex){
+	return function(str){
+	    return str.match(regex)? true : false;
+	};
+    }
 
-    d3.tsv("bar.txt", identity, function(err, data){
+    function flatten(mtx){
+	return Array.prototype.concat.apply([], mtx);
+    }
+
+    function preprocess(row){
+	keys(row).filter(gt(0, 1)).map(function(key){ 
+	    row[key] = +row[key];
+	});
+	row.Taxon = phylum(row.Taxon);
+
+	to_average = d3.entries(row).
+	    filter(function(d){ return is_numeric(d.value); });
+	row.GlobalAverage = d3.mean(to_average, getattr("value"));
+	nested = d3.nest().
+	    key(function(d){ return d.key.replace(/\.\d+$/, ""); }).
+	    entries(to_average);
+	nested.map(function(subjectgroup){ 
+	    var k = subjectgroup.key+"_Average";
+	    row[k] = d3.mean(subjectgroup.values, getattr("value"));
+	});
+	return row;
+    }
+
+    d3.tsv("bar.txt", preprocess, function(err, data){
 	var searchterm = window.hmp2_cookie().get()
-	, parsed = data.map( decompose(search(searchterm)) )
-	, samplenames = parsed[0].map( getattr("x") ).sort()
-	, latest = samplenames[samplenames.length-1];
+	, allkeys = keys(data[0])
+	, subj_samples = allkeys.filter(search(searchterm))
+	, avgkey = subj_samples.filter( grep(/_Average$/) )[0]
+	, samplenames = subj_samples.filter( grep(/\.\d+$/) ).sort(by_last_number)
+	, latest = samplenames[samplenames.length-1]
+	, allpoints = flatten(data.map(d3.values)).filter(is_numeric);
+
+	x0.domain(data.map(getattr("Taxon")));
+	x1.domain(["Study Average", "Your Average", latest]).
+	    rangeRoundBands([0, x0.rangeBand()]);
+	y.domain([ 0, d3.max(allpoints) ]);
 
 	dropdown.selectAll("option").
 	    data(samplenames).
@@ -222,10 +152,10 @@ window.plot_avg = function(){
 	    attr("selected", function(row){ return row == latest; }).
 	    text(identity);
 	    
-	var legend = svg.selectAll(".legend").
-	    data(["Average", latest]).
+	var legend = svg.selectAll(".avg_legend").
+	    data(["Study Average", "Your Average", latest]).
 	    enter().append("g").
-	    attr("class", "legend").
+	    attr("class", "avg_legend").
 	    attr("transform", function(row, idx){ 
 		return "translate(0,"+(idx*20)+")"; 
 	    });
@@ -245,11 +175,40 @@ window.plot_avg = function(){
 
 	window.avg_legend = legend;
 
-	limiter({has_bar: true}, parsed);
-    });
+	svg.append("g").
+	    attr("class", "x axis").
+	    attr("transform","translate(0,"+height+")").
+	    call(xAxis).
+	      selectAll("text").
+	    attr("transform", "rotate(35)").
+	    style("text-anchor", "start");
 
-    d3.tsv("avg.txt", identity, function(err, data){
-	limiter({has_avg: true}, data);
+	svg.append("g").
+	    attr("class", "y axis").
+	    call(yAxis);
+
+	var taxon = svg.selectAll(".taxon").
+	    data(data).
+	      enter().append("g").
+	    attr("class", "g").
+	    attr("transform", function(row){ 
+		return "translate("+x0(row.Taxon)+",0)";});
+
+	var rects = taxon.selectAll("rect").
+	    data(function(bug){ 
+		return [ {k: "Study Average", v: bug.GlobalAverage},
+			 {k: "Your Average" , v: bug[avgkey]}, 
+			 {k: latest,          v: bug[latest]} ];
+	    }).
+	      enter().append("rect").
+	    attr("width", x1.rangeBand()).
+	    attr("x", function(row){ return x1(row.k); }).
+	    attr("y", function(row){ return y(row.v); }).
+	    attr("height", function(row){ return height-y(row.v); }).
+	    style("fill", function(row){ return color(row.k); });
+
+	window.avg_rects = rects;
+
     });
 
 };

@@ -2,8 +2,6 @@ import re
 import sys
 from collections import namedtuple, defaultdict
 
-import numpy as np
-
 DietSample = namedtuple(
     'DietSample', 
     ["SampleID",                "Caffiene",       "Sugary_drinks", 
@@ -33,7 +31,7 @@ def score(s):
             return 1
     match = re.match(r'.*yesterday, (\d+) .*', s)
     if match:
-        if match.group(1) == 1:
+        if match.group(1) == "1":
             return 3
         else:
             return 4
@@ -61,15 +59,6 @@ def main(data_fname):
     print "#"+"\t".join([ s.replace('_', ' ') for s in samples[0]._fields ])
     for sample in samples:
         print "\t".join(map(str, sample))
-
-    data = np.array([ s[1:] for s in samples ], dtype="int64")
-
-    print "Average\t"+"\t".join(map(str, data.mean(axis=0)))
-    print "IQR\t"+"\t".join([ "%i,%i"%(top, bot) 
-                              for top, bot in zip(
-                                      *np.percentile(data, [25,75], axis=0)
-                              )])
-
 
 if __name__ == '__main__':
     ret = main(sys.argv[1])
