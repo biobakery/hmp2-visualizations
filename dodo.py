@@ -17,27 +17,24 @@ with open(settings.map_file) as f:
 sample_names, otu_tables = zip( *((row[0], row[2]) for row in 
                                 sorted(raw_meta, key=snd)) )
 
-pipeline = VisualizationPipeline(settings.map_file,
-                                 otu_tables=otu_tables,
-                                 products_dir=settings.products_dir)
 DOIT_CONFIG = {
     'default_tasks': ['gen'],
     'continue'     : True,
     'pipeline_name': "HMP2 Visualizations"
 }
 
-def rename_biom_id(fname, sample_id):
+def rename_biom_id(fname, sample_id, outfname):
     
     def run(biom_fname, sample_id):
         import json
         with open(biom_fname, 'r') as f:
             biom = json.load(f)
             biom['columns'][0]['id'] = sample_id
-        with open(biom_fname, 'w') as f:
+        with open(outfname, 'w') as f:
             json.dump(biom, f)
 
     return {
-        'name': 'rename_biom_id:'+fname,
+        'name': 'rename_biom_id:'+outfname,
         'file_dep': [fname],
         'actions': [(run, (fname,sample_id))]
     }
@@ -81,9 +78,14 @@ def diet_workflow(data_fname, metadata):
     
 
 def task_gen():
+    otu_tables = []
     for sample in raw_meta:
-        yield rename_biom_id(sample[2], sample[3])
-
+        t = os.path.join(settings.products_dir, sample[3] + ".biom")
+        yield rename_biom_id(sample[2], sample[3], t)
+        otu_tables.append(t)
+    pipeline = VisualizationPipeline(settings.map_file,
+                                 otu_tables=otu_tables,
+                                 products_dir=settings.products_dir)
     state = list()
     tasks = list(diet_workflow(settings.diet_data, raw_meta))
     state.extend(tasks)

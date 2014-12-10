@@ -78,16 +78,18 @@ window.plot_pcoa = function() {
 	    attr("dy", "0.71em").
 	    style("text-anchor", "end");
 
+    var dotscale = 15/Math.log(data.length);
 	svg.selectAll(".dot").
 	    data(data).
 	    enter().append("circle").
 	    attr("class", "dot").
-	    attr("r", 3.5).
+	    attr("r", dotscale).
 	    attr("cx", function(row){ return x(row.x); }).
 	    attr("cy", function(row){ return y(row.y); }).
 	    attr("indexKey", function(row){ return row.id; }).
 	      filter( search(window.hmp2_cookie().get()) ).
-	    style("fill", "#0a0");
+	    style("fill", "#0a0").
+        attr("r", dotscale * 3);
 
     });
 
