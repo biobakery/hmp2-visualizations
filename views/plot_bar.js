@@ -22,7 +22,7 @@ window.plot_bar = function() {
     }
 
     function init(args_obj){ 
-	var margin = {top: 20, right: 20, bottom: 30, left: 40 }
+	var margin = {top: 40, right: 20, bottom: 30, left: 40 }
 	, width = 960 - margin.left - margin.right
 	, height = 500 - margin.top - margin.bottom;
 
@@ -115,16 +115,36 @@ window.plot_bar = function() {
 		return d3.rgb(dims.z(i)).darker(); 
 	    });
 
+	dims.svg.selectAll("text").
+	    data(dims.x.domain()).
+	      enter().append("svg:text").
+	    attr("x", 0).
+	    attr("y", 0).
+	    attr("transform", function(d){
+		return "translate("+(dims.x(d)+5)+",-5) rotate(-20)";
+	    }).
+	    text(identity);
+
 	var rects = taxon.selectAll("rect").
 	    data(Object).
-	    enter().append("svg:rect").
+	      enter().append("svg:rect").
 	    attr("x", function(d){ return dims.x(d.x); }).
 	    attr("y", function(d){ return dims.y(d.y0); }).
 	    attr("height", function(d){ return dims.y(d.y); }).
-	    attr("width", dims.x.rangeBand());
-
-	rects.append("svg:title").
-	    text(function(row){ return row.Taxon + ": " + perc(row.y, 2); });
+	    attr("width", dims.x.rangeBand()).
+	    on("mouseover", function(d){ 
+		return window.tooltip.
+		    style("visibility", "visible").
+		    text(d.Taxon + ": " + perc(d.y, 2));
+	    }).
+	    on("mousemove", function(){ 
+		return window.tooltip.
+		    style("top", (d3.event.pageY-10)+"px").
+		    style("left", (d3.event.pageX+10)+"px");
+	    }).
+	    on("mouseout", function(){ 
+		return window.tooltip.style("visibility", "hidden"); 
+	    });
 
 	var rule = dims.svg.selectAll("g.rule").
 	    data(dims.y.ticks(10)).

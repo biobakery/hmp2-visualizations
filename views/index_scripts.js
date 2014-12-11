@@ -1,4 +1,5 @@
 window.hmp2_cookie = function(){ 
+
     var get = function() {
 	var val =  document.cookie.match(/sample_id=([^;]+);?.*/);
 	if ( val && val.length > 1){ 
@@ -62,3 +63,10 @@ window.fillplots = function() {
     window.plot_avg();
     window.plot_diet();
 }
+
+window.tooltip = d3.select("body").
+    append("div").
+    style("position", "absolute").
+    style("z-index", "10").
+    style("visibility", "hidden").
+    text("");

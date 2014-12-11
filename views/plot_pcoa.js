@@ -12,11 +12,13 @@ window.plot_pcoa = function() {
 
     var xAxis = d3.svg.axis().
 	scale(x).
-	orient("bottom");
+	orient("bottom").
+	tickFormat("");
 
     var yAxis = d3.svg.axis().
 	scale(y).
-	orient("left");
+	orient("left").
+	tickFormat("");
 
     var svg = d3.select("#pcoa_chart_area").append("svg").
 	attr("width", width + margin.left + margin.right).
@@ -61,24 +63,13 @@ window.plot_pcoa = function() {
 	svg.append("svg:g").
 	    attr("class", "x axis").
 	    attr("transform", "translate(0,"+height+")").
-	    call(xAxis).
-	      append("text").
-	    attr("class", "label").
-	    attr("x", width).
-	    attr("y", -6).
-	    style("text-anchor", "end");
+	    call(xAxis);
 
 	svg.append("svg:g").
 	    attr("class", "y axis").
-	    call(yAxis).
-	      append("text").
-	    attr("class", "label").
-	    attr("transform", "rotate(-90)").
-	    attr("y", 6).
-	    attr("dy", "0.71em").
-	    style("text-anchor", "end");
+	    call(yAxis);
 
-    var dotscale = 15/Math.log(data.length);
+        var dotscale = 15/Math.log(data.length);
 	svg.selectAll(".dot").
 	    data(data).
 	    enter().append("circle").
@@ -87,9 +78,22 @@ window.plot_pcoa = function() {
 	    attr("cx", function(row){ return x(row.x); }).
 	    attr("cy", function(row){ return y(row.y); }).
 	    attr("indexKey", function(row){ return row.id; }).
+	    on("mouseover", function(d){ 
+		return window.tooltip.
+		    style("visibility", "visible").
+		    text(d.id);
+	    }).
+	    on("mousemove", function(){ 
+		return window.tooltip.
+		    style("top", (d3.event.pageY-10)+"px").
+		    style("left", (d3.event.pageX+10)+"px");
+	    }).
+	    on("mouseout", function(){ 
+		return window.tooltip.style("visibility", "hidden"); 
+	    }).
 	      filter( search(window.hmp2_cookie().get()) ).
 	    style("fill", "#0a0").
-        attr("r", dotscale * 3);
+            attr("r", dotscale * 2);
 
     });
 
