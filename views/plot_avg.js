@@ -132,7 +132,7 @@ window.plot_avg = function(){
     }
 
     d3.tsv("bar.txt", preprocess, function(err, data){
-	var searchterm = window.hmp2_cookie().get()
+	var searchterm = window.hmp2_cookie().get().replace(/\..*$/, '')
 	, allkeys = keys(data[0])
 	, subj_samples = allkeys.filter(search(searchterm))
 	, avgkey = subj_samples.filter( grep(/_Average$/) )[0]
