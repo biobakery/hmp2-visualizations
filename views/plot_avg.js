@@ -35,7 +35,8 @@ window.plot_avg = function(){
     
 
     window.update_bar = function(el) {
-	var avgkey = el.value.replace(/\.\d+$/, "")+"_Average";
+	var avgkey = el.value.replace(/\.\d+$/, "")+"_Average"
+	, latest = el.value;
 	window.avg_rects.
 	    data(function(bug){ 
 		return [ {k: "Study Average", v: bug.GlobalAverage},
