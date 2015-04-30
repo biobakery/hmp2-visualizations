@@ -2,7 +2,7 @@
 *.pyc
 .doit*
 products
-#input
+input
 src/css
 src/fonts
 src/js
