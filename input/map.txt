@@ -1,0 +1,22 @@
+#SampleID	DataFile	Hash
+2008.0	/vagrant/data/hmp2_sample_otus/2008.0.biom	HpfYCLe.0
+2008.1	/vagrant/data/hmp2_sample_otus/2008.1.biom	HpfYCLe.1
+2008.2	/vagrant/data/hmp2_sample_otus/2008.2.biom	HpfYCLe.2
+2008.3	/vagrant/data/hmp2_sample_otus/2008.3.biom	HpfYCLe.3
+2008.4	/vagrant/data/hmp2_sample_otus/2008.4.biom	HpfYCLe.4
+2008.5	/vagrant/data/hmp2_sample_otus/2008.5.biom	HpfYCLe.5
+2008.6	/vagrant/data/hmp2_sample_otus/2008.6.biom	HpfYCLe.6
+2008.7	/vagrant/data/hmp2_sample_otus/2008.7.biom	HpfYCLe.7
+2008.8	/vagrant/data/hmp2_sample_otus/2008.8.biom	HpfYCLe.8
+2008.9	/vagrant/data/hmp2_sample_otus/2008.9.biom	HpfYCLe.9
+2008.10	/vagrant/data/hmp2_sample_otus/2008.10.biom	HpfYCLe.10
+2008.11	/vagrant/data/hmp2_sample_otus/2008.11.biom	HpfYCLe.11
+2008.12	/vagrant/data/hmp2_sample_otus/2008.12.biom	HpfYCLe.12
+2008.13	/vagrant/data/hmp2_sample_otus/2008.13.biom	HpfYCLe.13
+2008.14	/vagrant/data/hmp2_sample_otus/2008.14.biom	HpfYCLe.14
+2008.15	/vagrant/data/hmp2_sample_otus/2008.15.biom	HpfYCLe.15
+2008.16	/vagrant/data/hmp2_sample_otus/2008.16.biom	HpfYCLe.16
+2008.17	/vagrant/data/hmp2_sample_otus/2008.17.biom	HpfYCLe.17
+2008.18	/vagrant/data/hmp2_sample_otus/2008.18.biom	HpfYCLe.18
+2008.19	/vagrant/data/hmp2_sample_otus/2008.19.biom	HpfYCLe.19
+		
