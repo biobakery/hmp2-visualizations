@@ -5,6 +5,7 @@ debug = True
 map_file = "./input/map.txt"
 diet_data = "./input/diet.txt"
 products_dir = "products"
+database_dir = "/home/vagrant/leveldb"
 
 class web:
     host = "0.0.0.0"
