@@ -30,72 +30,64 @@ window.plot_pcoa = function() {
 	return data;
     }
 
-    function numerize(row){ 
-	return { x  : +row.Dimension_1,
-		 y  : +row.Dimension_2,
-		 id : row.ID }
+    var pid = window.hmp2_cookie().get()
+    function numerize(row, i) {
+	return { x: row[0],
+		 y: row[1],
+		 id: pid+"."+i.toString() }
     }
 
-    function search(searchterm){
-	var hits = 0
-	return function(item){ 
-	    var pass = item.id.lastIndexOf(searchterm, 0) === 0;
-	    message(hits += pass? 1 : 0);
-	    return pass;
-	}
+    function index_by(objarr, attr) {
+	var idx = new Object;
+	objarr.map(function(obj){ idx[ obj[attr] ] = obj.id; });
+	return idx;
     }
 
-    function message(nhits){
-	var el = document.getElementById("pcoa_searchresults")
-	, basemsg = "Found "+nhits+" result"
-	, msg = (nhits == 1)? basemsg+"." : basemsg+"s.";
+    var udata = window.user_data.pcoa === undefined? [] : window.user_data.pcoa
+    , udata = udata.map(numerize)
+    , data = window.average_data.pcoa.map(numerize)
+    , xset = index_by(udata, 'x')
+    , yset = index_by(udata, 'y')
 
-	if (el.childNodes.length > 0)
-	    for (i=0; i<=el.childNodes.length; i+=1)
-		el.childNodes[i].remove();
-	el.appendChild(document.createTextNode(msg));
-    }
+    x.domain(d3.extent(data, function(row){ return row.x; })).nice();
+    y.domain(d3.extent(data, function(row){ return row.y; })).nice();
 
-    d3.csv("pcoa.txt", numerize, function(err, data) {
-	x.domain(d3.extent(data, function(row){ return row.x; })).nice();
-	y.domain(d3.extent(data, function(row){ return row.y; })).nice();
+    svg.append("svg:g").
+	attr("class", "x axis").
+	attr("transform", "translate(0,"+height+")").
+	call(xAxis);
 
-	svg.append("svg:g").
-	    attr("class", "x axis").
-	    attr("transform", "translate(0,"+height+")").
-	    call(xAxis);
+    svg.append("svg:g").
+	attr("class", "y axis").
+	call(yAxis);
 
-	svg.append("svg:g").
-	    attr("class", "y axis").
-	    call(yAxis);
-
-        var dotscale = 15/Math.log(data.length);
-	svg.selectAll(".dot").
-	    data(data).
-	    enter().append("circle").
-	    attr("class", "dot").
-	    attr("r", dotscale).
-	    attr("cx", function(row){ return x(row.x); }).
-	    attr("cy", function(row){ return y(row.y); }).
-	    attr("indexKey", function(row){ return row.id; }).
-	    on("mouseover", function(d){ 
-		return window.tooltip.
-		    style("visibility", "visible").
-		    text(d.id);
-	    }).
-	    on("mousemove", function(){ 
-		return window.tooltip.
-		    style("top", (d3.event.pageY-10)+"px").
-		    style("left", (d3.event.pageX+10)+"px");
-	    }).
-	    on("mouseout", function(){ 
-		return window.tooltip.style("visibility", "hidden"); 
-	    }).
-	      filter( search(window.hmp2_cookie().get()) ).
-	    style("fill", "#0a0").
-            attr("r", dotscale * 2);
-
-    });
+    var dotscale = 15/Math.log(data.length);
+    svg.selectAll(".dot").
+	data(data).
+	enter().append("circle").
+	attr("class", "dot").
+	attr("r", dotscale).
+	attr("cx", function(row){ return x(row.x); }).
+	attr("cy", function(row){ return y(row.y); }).
+	filter( function(d){
+	    var a = xset[d.x], b = yset[d.y];
+	    return (a !== undefined && b !== undefined && a == b);
+	}).
+	on("mouseover", function(d){ 
+	    return window.tooltip.
+		style("visibility", "visible").
+		text(xset[d.x]);
+	}).
+	on("mousemove", function(){ 
+	    return window.tooltip.
+		style("top", (d3.event.pageY-10)+"px").
+		style("left", (d3.event.pageX+10)+"px");
+	}).
+	on("mouseout", function(){ 
+	    return window.tooltip.style("visibility", "hidden"); 
+	}).
+	style("fill", "#0a0").
+	attr("r", dotscale * 2);
 
 };
 

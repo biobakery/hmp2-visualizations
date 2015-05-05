@@ -57,11 +57,32 @@ window.clearplots = function() {
 }
 
 window.fillplots = function() {
-    $(".plot_caption").css("display", "");
-    window.plot_bar();
-    window.plot_pcoa();
-    window.plot_avg();
-    window.plot_diet();
+    var sample_id = window.hmp2_cookie().get();
+    $.getJSON("/averages").done(function(data) {
+	window.average_data = data;
+    }).then(function() {
+	$.getJSON("/user/"+sample_id).done(function(data) {
+	    $(".plot_caption").css("display", "");
+	    window.user_data = data;
+	    window.plot_bar();
+	    window.plot_pcoa();
+	    window.plot_avg();
+	    window.plot_diet();
+	}).fail(function(xhr, statustext, errortext) {
+	    $("#search").append("<div id='usererror'>");
+	    window.clear_hmp2_cookie();
+	    $("#usererror").hide().
+		addClass("alert alert-error").
+		text(errortext).
+		fadeIn(400, function(){
+		    setTimeout( function(){
+			$("#usererror").fadeOut(400, function(){
+			    $("#usererror").remove()
+			})
+		    }, 3000);
+		});
+	});
+    });
 }
 
 window.tooltip = d3.select("body").

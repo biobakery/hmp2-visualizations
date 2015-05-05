@@ -52,6 +52,7 @@ if settings.debug:
 def index():
     return {'settings': settings.web}
 
+
 @get(mount+"/user/<pid>")
 @get(mount+"//user/<pid>")
 def user(pid):
