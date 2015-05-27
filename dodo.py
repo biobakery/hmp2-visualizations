@@ -1,14 +1,11 @@
 import os
-import re
-import csv
 import sys
 import json
-from collections import defaultdict
+from datetime import datetime
 from operator import add, itemgetter
-from itertools import chain
+from collections import defaultdict
 
 from anadama import util
-from anadama_workflows.pipelines import VisualizationPipeline
 
 import settings
 
@@ -16,9 +13,11 @@ here = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(here, "src"))
 
 import models
-from util import update_with, peek, partition_by, avg_by_vals
+from util import update_with, peek, partition_by, avg_by_vals, count, get
 import process_diet
+import process_pcoa
 
+NOW = datetime.utcnow().strftime("%s")
 
 with open(settings.map_file) as f:
     raw_meta = list(util.deserialize_map_file(f))
@@ -79,35 +78,45 @@ def update_db_taxa(metadata=metadata):
     models.save_all(_users())
     global_user = models.User(models.GLOBAL_PID, db=db, load=True)
     global_user.state[models.User.TAXA_KEY] = avg_by_vals(global_phylum)
+    global_user.state[models.User.MTIME_KEY] = NOW
     global_user.save()
 
 
-def update_db_pcoa(pcoa_fname):
+def update_db_pcoa():
     global_user = models.User(models.GLOBAL_PID, db=db, load=True)
-    global_user.state[models.User.PCOA_KEY] = list()
-    def _pcoa():
-        with open(pcoa_fname, 'rb') as f:
-            f.readline() # discard first line
-            reader = csv.reader(f)
-            for name, x, y in reader:
-                hashed_name = HASHED_MAP.get(name)
-                if not hashed_name:
-                    continue
-                name, instance = hashed_name.split('.')
-                x, y = float(x), float(y)
-                global_user.state[models.User.PCOA_KEY].append( (x,y) )
-                yield name, instance, (x,y)
 
-    
+    otu_tables = zip(*metadata)[1]
+    sample_pcoa = process_pcoa.main(otu_tables)
+    global_user.state[models.User.PCOA_SAMPLE_KEY] = sample_pcoa
+
+    medoids = list()
+    for userchunk in partition_by(metadata, getpid):
+        otu_tables = zip(*userchunk)[1]
+        abundance_dicts = process_pcoa.load_bioms(otu_tables)
+        medoids.append(dict(process_pcoa.abundance_medoids(abundance_dicts)))
+    n = len(medoids)
+    user_pcoa = process_pcoa.pcoa_coords( process_pcoa.dist_array(medoids, n) )
+    global_user.state[models.User.PCOA_USER_KEY] = user_pcoa
+
+    def _idxs():
+        prev = 0
+        for i, chunk in enumerate(partition_by(metadata, getpid)):
+            first, chunk = peek(chunk)
+            name = first[-1].split('.',1)[0]
+            n = count(chunk)
+            yield i, name, range(prev, prev+n)
+            prev += n
+
     def _users():
-        for user_pcoa in partition_by(_pcoa(), firstitem):
-            first, user_pcoa = peek(user_pcoa)
-            print first[0]
-            user = models.User(first[0], db=db, load=True)
-            user.state[models.User.PCOA_KEY] = [ l[-1] for l in user_pcoa ]
+        for user_idx, user_id, sample_idxs in _idxs():
+            sample_pcoa_points = get(sample_idxs, sample_pcoa)
+            user = models.User(user_id, db=db, load=True)
+            user.state[models.User.PCOA_SAMPLE_KEY] = sample_pcoa_points
+            user.state[models.User.PCOA_USER_KEY] = user_pcoa[user_idx]
             yield user
-            
+    
     models.save_all(_users())
+    global_user.state[models.User.MTIME_KEY] = NOW
     global_user.save()
 
 
@@ -141,39 +150,40 @@ def update_db_diet(diet_fname):
     models.save_all(_users())
     global_user = models.User(models.GLOBAL_PID, db=db, load=True)
     global_user.state[models.User.DIET_KEY] = global_avg
+    global_user.state[models.User.MTIME_KEY] = NOW
     global_user.save()
+
+
+def has_data(key):
+    global_user = models.User(models.GLOBAL_PID, db=db, load=True)
+    f = lambda *a, **k: all((key in global_user.state,
+                             models.User.MTIME_KEY in global_user.state))
+    return f
 
 
 def task_gen():
     otu_tables = zip(*metadata)[1]
     yield {
         "name": "update_db_taxa",
+        "actions": [update_db_taxa],
         "file_dep": otu_tables,
-        "actions": [update_db_taxa]
+        "uptodate": [has_data(models.User.TAXA_KEY)]
     }
 
     yield {
         "name": "update_db_diet",
+        "actions": [lambda: update_db_diet(settings.diet_data)],
         "file_dep": [settings.diet_data],
-        "actions": [lambda: update_db_diet(settings.diet_data)]
+        "uptodate": [has_data(models.User.DIET_KEY)]
     }
-
-    pipeline = VisualizationPipeline(settings.map_file,
-                                     otu_tables=otu_tables,
-                                     products_dir=settings.products_dir)
-    pipeline.configure()
-    pcoa_file = None
-    for t in pipeline:
-        if 'stacked' in t['name']:
-            continue
-        yield t
-        if any("coords" in p for p in t['targets']):
-            pcoa_file = next(iter( p for p in t['targets'] if "coords" in p ))
 
     yield {
         "name": "update_db_pcoa",
-        "file_dep": [pcoa_file],
-        "actions": [lambda: update_db_pcoa(pcoa_file)]
+        "actions": [update_db_pcoa],
+        "file_dep": otu_tables,
+        "uptodate": [has_data(models.User.PCOA_USER_KEY),
+                      has_data(models.User.PCOA_SAMPLE_KEY)]
     }
+
 
     

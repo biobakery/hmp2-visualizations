@@ -1,6 +1,6 @@
 import re
 import sys
-from collections import namedtuple, defaultdict
+from collections import namedtuple
 
 DietSample = namedtuple(
     'DietSample', 

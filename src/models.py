@@ -93,7 +93,9 @@ class User(DBMixin, object):
 
     TAXA_KEY = "taxa"
     DIET_KEY = "diet"
-    PCOA_KEY = "pcoa"
+    PCOA_USER_KEY = "pcoa_user"
+    PCOA_SAMPLE_KEY = "pcoa_sample"
+    MTIME_KEY = "mtime"
 
     def __init__(self, pid, db=None, db_dir=DB_DIRECTORY, load=False):
         self.pid = pid

@@ -37,4 +37,8 @@ def partition(iterable, binsize):
     return izip_longest(fillvalue=None, *iters)    
 
 
-    
+def count(iterable):
+    return sum(1 for _ in iterable)
+
+def get(keys, item):
+    return [ item[key] for key in keys ]
