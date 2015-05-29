@@ -86,7 +86,6 @@
 
 	<div class="plot_caption" style="display: none;">
 	  <h4>Your microbial profile to date</h4>
-	  <div id="bar_searchresults"></div>
 	  <div class="plot_area" id="bar_chart_area"></div>
 	  <p>
 	    This diagram represents the proportions of different groups
@@ -101,8 +100,19 @@
 
 	<div class="plot_caption" style="display: none;">
 	  <h4>Your gut similarity compared to others</h4>
-	  <div id="pcoa_searchresults"></div>
-	  <div class="plot_area" id="pcoa_chart_area"></div>
+	  <div>
+	    <select id="pcoa_chart_selector"
+		    onchange="window.update_pcoa(this)" >
+	      <option value="by_user" selected="true">
+		By Participant
+	      </option>
+	      <option value="by_sample">
+		By Sample
+	      </option>
+	    </select>
+	  </div>
+	  <div class="plot_area" id="pcoa_chart_area">
+	  </div>
 	  <p>This diagram shows all stool samples collected from all
 	    participants in the IBD Multi'omics project. Each dot
 	    represents a single sample, and the distance between

@@ -1,6 +1,6 @@
 window.plot_pcoa = function() {
 
-    var margin = {top: 20, right: 20, bottom: 30, left: 40 }
+    var margin = {top: 20, right: 20, bottom: 30, left: 10 }
     , width = 960 - margin.left - margin.right
     , height = 500 - margin.top - margin.bottom;
 
@@ -43,14 +43,16 @@ window.plot_pcoa = function() {
 	return idx;
     }
 
-    var udata = window.user_data.pcoa === undefined? [] : window.user_data.pcoa
-    , udata = udata.map(numerize)
-    , data = window.average_data.pcoa.map(numerize)
-    , xset = index_by(udata, 'x')
-    , yset = index_by(udata, 'y')
-
-    x.domain(d3.extent(data, function(row){ return row.x; })).nice();
-    y.domain(d3.extent(data, function(row){ return row.y; })).nice();
+    var my_sdata = window.user_data.pcoa_sample === undefined? [] : window.user_data.pcoa_sample
+    , my_sdata = my_sdata.map(numerize)
+    , my_udata = window.user_data.pcoa_user === undefined? [] : window.user_data.pcoa_user
+    , my_udata = [my_udata].map(numerize)
+    , all_udata = window.average_data.pcoa_user.map(numerize)
+    , all_sdata = window.average_data.pcoa_sample.map(numerize)
+    , uxset = index_by(my_udata, 'x')
+    , uyset = index_by(my_udata, 'y')
+    , sxset = index_by(my_sdata, 'x')
+    , syset = index_by(my_sdata, 'y')
 
     svg.append("svg:g").
 	attr("class", "x axis").
@@ -61,33 +63,65 @@ window.plot_pcoa = function() {
 	attr("class", "y axis").
 	call(yAxis);
 
-    var dotscale = 15/Math.log(data.length);
-    svg.selectAll(".dot").
-	data(data).
-	enter().append("circle").
-	attr("class", "dot").
-	attr("r", dotscale).
-	attr("cx", function(row){ return x(row.x); }).
-	attr("cy", function(row){ return y(row.y); }).
-	filter( function(d){
+
+    window.update_pcoa = function(el) {
+	if (el.value == "by_sample") {
+	    xset = sxset;
+	    yset = syset;
+	    data = all_sdata;
+	} else {
+	    xset = uxset;
+	    yset = uyset;
+	    data = all_udata;
+	}
+
+	function filterfunc(d){
 	    var a = xset[d.x], b = yset[d.y];
 	    return (a !== undefined && b !== undefined && a == b);
-	}).
-	on("mouseover", function(d){ 
+	}
+
+	function mouseon(d){ 
 	    return window.tooltip.
 		style("visibility", "visible").
 		text(xset[d.x]);
-	}).
-	on("mousemove", function(){ 
+	}
+
+	function mousemove(){ 
 	    return window.tooltip.
 		style("top", (d3.event.pageY-10)+"px").
 		style("left", (d3.event.pageX+10)+"px");
-	}).
-	on("mouseout", function(){ 
+	}
+	
+	function mouseout(){ 
 	    return window.tooltip.style("visibility", "hidden"); 
-	}).
-	style("fill", "#0a0").
-	attr("r", dotscale * 2);
+	}
 
+	
+	x.domain(d3.extent(data, function(row){ return row.x; })).nice();
+	y.domain(d3.extent(data, function(row){ return row.y; })).nice();
+
+	var dotscale = 15/Math.log(data.length),
+	    dots = svg.selectAll(".dot");
+	
+	if ( dots.data().length > 1 ) {
+	    dots.remove();
+	    dots.data([]);
+	}
+	svg.selectAll(".dot").
+	    data(data).
+	      enter().append("circle").
+	    attr("class", "dot").
+	    attr("r", dotscale).
+	    attr("cx", function(row){ return x(row.x); }).
+	    attr("cy", function(row){ return y(row.y); }).
+	      filter(filterfunc).
+	    on("mouseover", mouseon).
+	    on("mousemove", mousemove).
+	    on("mouseout", mouseout).
+	      transition().duration(750).
+	    style("fill", "#0a0").
+	    attr("r", dotscale * 2);
+    }
+    window.update_pcoa(document.getElementById("pcoa_chart_selector"));
 };
 
