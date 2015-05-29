@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import json
 from datetime import datetime
@@ -110,12 +111,13 @@ def update_db_pcoa():
             prev += n
 
     def _users():
-        for user_pcoa in partition_by(_pcoa(), firstitem):
-            first, user_pcoa = peek(user_pcoa)
-            user = models.User(first[0], db=db, load=True)
-            user.state[models.User.PCOA_KEY] = [ l[-1] for l in user_pcoa ]
+        for user_idx, user_id, sample_idxs in _idxs():
+            sample_pcoa_points = get(sample_idxs, sample_pcoa)
+            user = models.User(user_id, db=db, load=True)
+            user.state[models.User.PCOA_SAMPLE_KEY] = sample_pcoa_points
+            user.state[models.User.PCOA_USER_KEY] = user_pcoa[user_idx]
             yield user
-    
+
     models.save_all(_users())
     global_user.state[models.User.MTIME_KEY] = NOW
     global_user.save()
