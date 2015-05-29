@@ -1,6 +1,6 @@
 window.plot_avg = function(){
 
-    var margin = {top: 20, right: 20, bottom: 100, left: 40 }
+    var margin = {top: 20, right: 30, bottom: 100, left: 40 }
     , width =  450 - margin.left - margin.right
     , height = 450 - margin.top - margin.bottom;
 
