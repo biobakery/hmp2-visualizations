@@ -41,8 +41,10 @@ db = models.initialize_db(settings.database_dir)
 firstitem = itemgetter(0)
 
 def phylum_abd(biom_fname):
-    phylum = lambda row: next(iter( item for item in row['metadata']['taxonomy']
-                                    if item.startswith('p__') ))
+    phylum = lambda row: next(iter(
+        item.replace('p__', '') for item in row['metadata']['taxonomy']
+        if item.startswith('p__')
+    ))
     with open(biom_fname) as f:
         data = json.load(f)
 
