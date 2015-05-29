@@ -58,10 +58,10 @@ window.clearplots = function() {
 
 window.fillplots = function() {
     var sample_id = window.hmp2_cookie().get();
-    $.getJSON("/averages").done(function(data) {
+    $.getJSON("averages").done(function(data) {
 	window.average_data = data;
     }).then(function() {
-	$.getJSON("/user/"+sample_id).done(function(data) {
+	$.getJSON("user/"+sample_id).done(function(data) {
 	    $(".plot_caption").css("display", "");
 	    window.user_data = data;
 	    window.plot_bar();

@@ -28,7 +28,7 @@ def samplekey(sample):
 
 metadata = sorted(raw_meta, key=samplekey)
 HASHED_MAP = dict([ (name, hashed) for name, _, hashed in metadata ])
-HASHED_MAP.update([ (os.path.splitext(os.path.basename(f))[0], hashed)
+HASHED_MAP.update([ (re.compile(r'.*products/(.*)/otus.*').match(f).group(1), hashed)
                     for _, f, hashed in metadata ])
 DOIT_CONFIG = {
     'default_tasks': ['gen'],
@@ -110,11 +110,10 @@ def update_db_pcoa():
             prev += n
 
     def _users():
-        for user_idx, user_id, sample_idxs in _idxs():
-            sample_pcoa_points = get(sample_idxs, sample_pcoa)
-            user = models.User(user_id, db=db, load=True)
-            user.state[models.User.PCOA_SAMPLE_KEY] = sample_pcoa_points
-            user.state[models.User.PCOA_USER_KEY] = user_pcoa[user_idx]
+        for user_pcoa in partition_by(_pcoa(), firstitem):
+            first, user_pcoa = peek(user_pcoa)
+            user = models.User(first[0], db=db, load=True)
+            user.state[models.User.PCOA_KEY] = [ l[-1] for l in user_pcoa ]
             yield user
     
     models.save_all(_users())
