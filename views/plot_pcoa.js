@@ -43,16 +43,38 @@ window.plot_pcoa = function() {
 	return idx;
     }
 
-    var my_sdata = window.user_data.pcoa_sample === undefined? [] : window.user_data.pcoa_sample
-    , my_sdata = my_sdata.map(numerize)
-    , my_udata = window.user_data.pcoa_user === undefined? [] : window.user_data.pcoa_user
-    , my_udata = [my_udata].map(numerize)
-    , all_udata = window.average_data.pcoa_user.map(numerize)
-    , all_sdata = window.average_data.pcoa_sample.map(numerize)
-    , uxset = index_by(my_udata, 'x')
-    , uyset = index_by(my_udata, 'y')
-    , sxset = index_by(my_sdata, 'x')
-    , syset = index_by(my_sdata, 'y')
+    function maybe_filtered() {
+	var dataobj = new Object;
+	if (window.user_data.pcoa_user !== undefined)
+	    dataobj = {
+		pcoa_user: [window.user_data.pcoa_user].map(numerize),
+		pcoa_user_avg: window.average_data.pcoa_user.map(numerize),
+	    };
+	if (window.user_data.pcoa_user_filtered !== undefined)
+	    dataobj = {
+		pcoa_user: [window.user_data.pcoa_user_filtered].map(numerize),
+		pcoa_user_avg: window.average_data.pcoa_user_filtered.map(numerize),
+	    };
+	if (window.user_data.pcoa_sample !== undefined) {
+	    dataobj.pcoa_sample = window.user_data.pcoa_sample.map(numerize);
+	    dataobj.pcoa_sample_avg = window.average_data.pcoa_sample.map(numerize);
+	} else if (window.user_data.pcoa_sample_filtered !== undefined) {
+	    dataobj.pcoa_sample = window.user_data.pcoa_sample_filtered.map(numerize);
+	    dataobj.pcoa_sample_avg = window.average_data.pcoa_sample_filtered.
+		map(numerize)
+	}
+	return dataobj;
+    }
+
+    var dataobj = maybe_filtered()
+	, my_udata = dataobj.pcoa_user
+	, my_sdata = dataobj.pcoa_sample
+	, all_udata = dataobj.pcoa_user_avg
+	, all_sdata = dataobj.pcoa_sample_avg
+	, uxset = index_by(my_udata, 'x')
+	, uyset = index_by(my_udata, 'y')
+	, sxset = index_by(my_sdata, 'x')
+	, syset = index_by(my_sdata, 'y')
 
     svg.append("svg:g").
 	attr("class", "x axis").
@@ -111,16 +133,23 @@ window.plot_pcoa = function() {
 	    data(data).
 	      enter().append("circle").
 	    attr("class", "dot").
+	    attr("cx", 465).
+	    attr("cy", 225).
 	    attr("r", dotscale).
-	    attr("cx", function(row){ return x(row.x); }).
-	    attr("cy", function(row){ return y(row.y); }).
 	      filter(filterfunc).
 	    on("mouseover", mouseon).
 	    on("mousemove", mousemove).
-	    on("mouseout", mouseout).
-	      transition().duration(750).
+	    on("mouseout", mouseout);
+
+	svg.selectAll(".dot").
+	    transition().duration(750).
+	    attr("cx", function(row){ return x(row.x); }).
+	    attr("cy", function(row){ return y(row.y); }).
+	    transition().duration(750).
+	    filter(filterfunc).
 	    style("fill", "#0a0").
 	    attr("r", dotscale * 2);
+	    
     }
     window.update_pcoa(document.getElementById("pcoa_chart_selector"));
 };
