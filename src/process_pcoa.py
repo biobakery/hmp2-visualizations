@@ -1,10 +1,13 @@
 import sys
 import json
 import contextlib
+import multiprocessing
 from itertools import combinations
 
 import numpy as np
 from cogent.cluster.nmds import NMDS
+
+from util import take, get
 
 def load_bioms(biom_fnames):
     biom_fs = map(open, biom_fnames)
@@ -16,8 +19,6 @@ def load_bioms(biom_fnames):
                 for taxa, abd in zip(data['rows'], data['data'])
             ])
 
-def get(k, default):
-    return lambda dict_: dict_.get(k, default)
 
 def abundance_medoids(dicts):
     dicts = list(dicts)
@@ -47,11 +48,25 @@ def distance(dict_a, dict_b):
     return num/denom
         
 
-def dist_array(abd_dicts, n_dicts):
+def distance_mapper(args):
+    (i, abd_a), (j, abd_b) = args
+    return (i,j), distance(abd_a, abd_b)
+
+
+def dist_array(abd_dicts, n_dicts, n_procs=4):
     dist = np.zeros((n_dicts, n_dicts), dtype='float')
-    for (i, abd_a), (j, abd_b) in combinations(enumerate(abd_dicts), 2):
-        dist[i,j] = distance(abd_a, abd_b)
+    pool = multiprocessing.Pool(n_procs)
+    distances = pool.map(distance_mapper, combinations(enumerate(abd_dicts), 2))
+    for (i, j), d in distances:
+        dist[i,j] = d
+
     return dist+dist.T # reflect across diagonal
+
+
+def rm_outliers(dist_arr, max_stddev=2.5):
+    means = dist_arr.mean(axis=1)
+    mask = ~ (means > means.mean()+(max_stddev*means.std()))
+    return dist_arr[mask,:][:,mask], mask
 
 
 def pcoa_coords(dist_arr):
@@ -60,15 +75,18 @@ def pcoa_coords(dist_arr):
 
 
 def output(pcoa_arr):
-    for x, y in pcoa_arr:
-        print x, '\t', y
+    for name, (x, y) in pcoa_arr:
+        print name, '\t', x, '\t', y
 
 
-def main(biom_fnames):
+def main(biom_fnames, do_filter=False, n_procs=4):
     all_abds = load_bioms(biom_fnames)
-    dist_arr = dist_array(all_abds, len(biom_fnames))
+    dist_arr = dist_array(all_abds, len(biom_fnames), n_procs=n_procs)
+    if do_filter:
+        dist_arr, mask = rm_outliers(dist_arr)
+        biom_fnames = take(biom_fnames, mask)
     pcoa_arr = pcoa_coords(dist_arr)
-    return pcoa_arr
+    return zip(biom_fnames, pcoa_arr)
 
 
 if __name__ == '__main__':

@@ -13,7 +13,7 @@ here = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(here, "src"))
 
 import models
-from util import update_with, peek, partition_by, avg_by_vals, count, get
+from util import update_with, peek, partition_by, avg_by_vals, take, dedupe
 import process_diet
 import process_pcoa
 
@@ -23,13 +23,13 @@ with open(settings.map_file) as f:
     raw_meta = list(util.deserialize_map_file(f))
 
 def samplekey(sample):
-    sample_id, instance = map(float, sample[0].split('.'))
-    return (sample_id*10)+instance
+    sample_id, instance = map(int, sample[0].split('.'))
+    return (sample_id*1000)+instance
 
 metadata = sorted(raw_meta, key=samplekey)
-HASHED_MAP = dict([ (name, hashed) for name, _, hashed in metadata ])
-HASHED_MAP.update([ (os.path.splitext(os.path.basename(f))[0], hashed)
-                    for _, f, hashed in metadata ])
+HASHED_MAP = dict([ (name.split('.', 1)[0], hashed)
+                    for name, _, hashed in metadata ])
+
 DOIT_CONFIG = {
     'default_tasks': ['gen'],
     'continue'     : True,
@@ -84,39 +84,59 @@ def update_db_taxa(metadata=metadata):
     global_user.save()
 
 
-def update_db_pcoa():
+def update_db_pcoa(n_procs=4):
+    def medoids(abd_tables, metadata):
+        for userchunk in partition_by(zip(abd_tables, metadata), getpid):
+            otu_tables = zip(*userchunk)[0]
+            median = dict(process_pcoa.abundance_medoids(otu_tables))
+            yield median
+
+    dictify = lambda pids, points_list: dict(zip(pids, points_list))    
+
+    pids = dedupe(map(getpid, metadata))
+    _, otu_tables, instances = zip(*metadata)
+    bioms = list(process_pcoa.load_bioms(otu_tables))
+
+    sampledist = process_pcoa.dist_array(bioms, len(bioms), n_procs=n_procs)
+    samplepcoa = dictify(instances, process_pcoa.pcoa_coords(sampledist))
+    meds = list(medoids(bioms, instances))
+    userdist = process_pcoa.dist_array(meds, len(meds), n_procs=n_procs)
+    userpcoa = dictify(pids, process_pcoa.pcoa_coords(userdist))
+
+    sampledist, mask = process_pcoa.rm_outliers(sampledist)
+    instances = take(instances, mask)
+    userdist, mask = process_pcoa.rm_outliers(userdist)
+    pids = take(pids, mask)
+    f_userpcoa = dictify(pids, process_pcoa.pcoa_coords(userdist))
+    f_samplepcoa = dictify(instances, process_pcoa.pcoa_coords(sampledist))
+
     global_user = models.User(models.GLOBAL_PID, db=db, load=True)
-
-    otu_tables = zip(*metadata)[1]
-    sample_pcoa = process_pcoa.main(otu_tables)
-    global_user.state[models.User.PCOA_SAMPLE_KEY] = sample_pcoa
-
-    medoids = list()
-    for userchunk in partition_by(metadata, getpid):
-        otu_tables = zip(*userchunk)[1]
-        abundance_dicts = process_pcoa.load_bioms(otu_tables)
-        medoids.append(dict(process_pcoa.abundance_medoids(abundance_dicts)))
-    n = len(medoids)
-    user_pcoa = process_pcoa.pcoa_coords( process_pcoa.dist_array(medoids, n) )
-    global_user.state[models.User.PCOA_USER_KEY] = user_pcoa
-
-    def _idxs():
-        prev = 0
-        for i, chunk in enumerate(partition_by(metadata, getpid)):
-            first, chunk = peek(chunk)
-            name = first[-1].split('.',1)[0]
-            n = count(chunk)
-            yield i, name, range(prev, prev+n)
-            prev += n
+    global_user.state[models.User.PCOA_SAMPLE_KEY] = samplepcoa.values()
+    global_user.state[models.User.PCOA_USER_KEY] = userpcoa.values()
+    global_user.state[
+        models.User.filtered.PCOA_SAMPLE_KEY] = f_samplepcoa.values()
+    global_user.state[models.User.filtered.PCOA_USER_KEY] = f_userpcoa.values()
 
     def _users():
-        for user_idx, user_id, sample_idxs in _idxs():
-            sample_pcoa_points = get(sample_idxs, sample_pcoa)
-            user = models.User(user_id, db=db, load=True)
-            user.state[models.User.PCOA_SAMPLE_KEY] = sample_pcoa_points
-            user.state[models.User.PCOA_USER_KEY] = user_pcoa[user_idx]
+        for userchunk in partition_by(metadata, getpid):
+            first, rest = peek(userchunk)
+            rest = list(rest)
+            pid = getpid(first)
+            user = models.User(pid, db=db, load=True)
+            if pid in f_userpcoa:
+                user.state[models.User.filtered.PCOA_USER_KEY] = f_userpcoa[pid]
+            else:
+                user.state[models.User.PCOA_USER_KEY] = userpcoa[pid]
+
+            instances = [k[-1] for k in rest]
+            if not all(k in f_samplepcoa for k in instances):
+                user.state[models.User.PCOA_SAMPLE_KEY] = [ samplepcoa[k]
+                                                            for k in instances ]
+            else:
+                user.state[models.User.filtered.PCOA_SAMPLE_KEY] = [
+                    f_samplepcoa[k] for k in instances ]
             yield user
-    
+
     models.save_all(_users())
     global_user.state[models.User.MTIME_KEY] = NOW
     global_user.save()
@@ -134,9 +154,12 @@ def update_db_diet(diet_fname):
     def _users():
         for sample in partition_by(samples, firstitem):
             first, sample = peek(sample)
-            pid = HASHED_MAP.get(first[0]+'.1', '.').split('.')[0]
+            pid = HASHED_MAP.get(first[0], '.').split('.')[0]
             if not pid:
-                continue
+                # skip samples in diet_data that are missing in
+                # taxonomy data
+                continue 
+
             user = models.User(pid, db=db, load=True)
             user.state[models.User.DIET_KEY] = { "instances": list(),
                                                  "averages": None }
@@ -186,6 +209,3 @@ def task_gen():
         "uptodate": [has_data(models.User.PCOA_USER_KEY),
                       has_data(models.User.PCOA_SAMPLE_KEY)]
     }
-
-
-    

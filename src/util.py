@@ -1,4 +1,5 @@
-from itertools import takewhile, chain, izip_longest
+from collections import OrderedDict
+from itertools import chain, izip_longest, izip, repeat, groupby
 
 identity = lambda item: item
 
@@ -25,12 +26,9 @@ def partition_by(to_partition, func=identity):
     iterable break
 
     """
-    to_partition = iter(to_partition)
-    while True:
-        first, to_partition = peek(to_partition)
-        first = func(first)
-        yield takewhile(lambda item: func(item) == first, to_partition)
-        
+    for _, chunk in groupby(to_partition, key=func):
+        yield chunk
+
 
 def partition(iterable, binsize):
     iters = [iter(iterable)]*binsize
@@ -40,5 +38,16 @@ def partition(iterable, binsize):
 def count(iterable):
     return sum(1 for _ in iterable)
 
-def get(keys, item):
-    return [ item[key] for key in keys ]
+
+def take(to_take_iter, should_take_iter):
+    for to_yield, should_yield in izip(to_take_iter, should_take_iter):
+        if should_yield:
+            yield to_yield
+
+
+def get(k, default): # for use with map
+    return lambda dict_: dict_.get(k, default)
+
+
+def dedupe(it):
+    return OrderedDict(izip(it, repeat(None))).keys()

@@ -97,6 +97,11 @@ class User(DBMixin, object):
     PCOA_SAMPLE_KEY = "pcoa_sample"
     MTIME_KEY = "mtime"
 
+    class filtered:
+        PCOA_USER_KEY = "pcoa_user_filtered"
+        PCOA_SAMPLE_KEY = "pcoa_sample_filtered"
+    
+
     def __init__(self, pid, db=None, db_dir=DB_DIRECTORY, load=False):
         self.pid = pid
         self._db = db

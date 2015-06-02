@@ -26,7 +26,7 @@ window.plot_diet = function(){
 
     var histgroup_colors = [ "rgb(0, 170, 0)", "rgb(0, 0, 0)" ];
 
-    var margin = {top: 20, right: 20, bottom: 100, left: 75 }
+    var margin = {top: 40, right: 20, bottom: 100, left: 75 }
     , width =  450 - margin.left - margin.right
     , height = 450 - margin.top - margin.bottom;
     
