@@ -14,7 +14,7 @@ DietSample = namedtuple(
      "Sweets"                                                      ]
 )
 
-idxs = [0] + range(13, 34)
+idxs = range(22)
 
 def take(idxs, indexable):
     return [indexable[idx] for idx in idxs]
