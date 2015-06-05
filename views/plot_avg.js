@@ -1,5 +1,7 @@
 window.plot_avg = function(){
 
+    const min_abd = 0.001
+
     var margin = {top: 40, right: 30, bottom: 100, left: 40 }
     , width =  450 - margin.left - margin.right
     , height = 450 - margin.top - margin.bottom;
@@ -33,31 +35,6 @@ window.plot_avg = function(){
 	  append("svg:g").
 	attr("transform", "translate("+margin.left+","+margin.top+")");
     
-
-    window.update_bar = function(el) {
-	var sample = el.value
-	, i = parseFloat(sample.replace(/.*\.(\d+)$/, '$1'));
-	window.avg_rects.
-	    data(function(bug){ 
-		return [ {k: "Study Average",
-			  v: window.average_data.taxa[bug.Taxon]},
-			 {k: "Your Average" ,
-			  v: window.user_data.taxa.averages[bug.Taxon]}, 
-			 {k: sample,
-			  v: window.user_data.taxa.instances[i][bug.Taxon]} ];
-	    }).
-	    transition().duration(750).
-	    delay(function(_, i){ return i * 50; }).
-	    attr("y", function(row){ return y(row.v); }).
-	    attr("height", function(row){ return height-y(row.v); });
-
-	d3.selectAll(".avg_legend text").
-	    data(["Study Average", "Your Average", sample]).
-	    text(identity);
-
-	window.update_diet( document.getElementById("diet_chart_selector") );
-    }
-
 
     function identity(data) {
 	return data;
@@ -144,13 +121,27 @@ window.plot_avg = function(){
     , user_avg_data = [window.user_data.taxa.averages]
     , user_avg_data = add_missing(user_avg_data, global_avg_data)
     , user_avg_data = decompose(user_avg_data[0])
+    , l = window.user_data.taxa.instances.length
+    , newest_sample = window.user_data.taxa.instances[l-1]
     , data = add_missing(window.user_data.taxa.instances, global_avg_data)
     , data = data.map(decompose)
     , latest = data.length-1
     , allpoints = flatten(data).concat(user_avg_data).concat(global_avg_data);
     
+    function maybe(float_){ return float_ === undefined? 0: float_; }
+    function abd_filter(newest, key){
+	var key = key === undefined? identity : key;
+	return function(phylum_obj){
+	    return (   maybe(newest[key(phylum_obj)])           > min_abd
+		    || maybe(user_avg_data[key(phylum_obj)])    > min_abd
+		    || maybe(global_avg_data[key(phylum_obj)])  > min_abd);
+	};
+    }
 
-    x0.domain(data[0].map(getattr("Taxon")).map(phylum));
+
+    x0.domain(data[0].
+	      map(getattr("Taxon")).map(phylum).
+	      filter(abd_filter(newest_sample)));
     x1.domain(["Study Average", "Your Average", samplenames[latest]]).
 	rangeRoundBands([0, x0.rangeBand()]);
     y.domain([ 0, d3.max(allpoints, function(obj){ return obj.y; }) ]);
@@ -183,8 +174,6 @@ window.plot_avg = function(){
 	style("text-anchor", "end").
 	text(identity);
 
-    window.avg_legend = legend;
-
     svg.append("g").
 	attr("class", "x axis").
 	attr("transform","translate(0,"+height+")").
@@ -198,21 +187,21 @@ window.plot_avg = function(){
 	call(yAxis);
 
     var taxon = svg.selectAll(".taxon").
-	data(data[0]).
+	data(data[0].map(getattr("Taxon")).filter(abd_filter(newest_sample))).
 	  enter().append("g").
 	attr("class", "g").
-	attr("transform", function(row){
-	    return "translate("+x0(phylum(row.Taxon))+",0)";});
+	attr("transform", function(phylum){
+	    return "translate("+x0(phylum)+",0)";});
 
     var rects = taxon.selectAll("rect").
-	data(function(bug){
+	data(function(taxon){
 	    return [
 		{k: "Study Average",
-		 v: window.average_data.taxa[bug.Taxon]},
+		 v: window.average_data.taxa[taxon]},
 		{k: "Your Average" ,
-		 v: window.user_data.taxa.averages[bug.Taxon]}, 
+		 v: window.user_data.taxa.averages[taxon]}, 
 		{k: samplenames[latest],
-		 v: window.user_data.taxa.instances[latest][bug.Taxon]}
+		 v: window.user_data.taxa.instances[latest][taxon]}
 	    ];
 	}).
 	  enter().append("rect").
@@ -220,8 +209,47 @@ window.plot_avg = function(){
 	attr("x", function(row){ return x1(row.k); }).
 	attr("y", function(row){ return y(row.v); }).
 	attr("height", function(row){ return height-y(row.v); }).
-	style("fill", function(row){ return color(row.k); });
+	style("fill", function(row){ return color(row.k); }).
+	style("stroke", "#000");
 
-    window.avg_rects = rects;
+    window.update_bar = function(el) {
+	var sample_id = el.value
+	, i = parseFloat(sample_id.replace(/.*\.(\d+)$/, '$1'))
+	, sample = window.user_data.taxa.instances[i];
+
+	x0.domain(data[0].map(getattr("Taxon")).
+		  map(phylum).
+		  filter(abd_filter(sample)));
+
+	taxon.
+	    data(data[0].map(getattr("Taxon")).
+		 filter(abd_filter(newest_sample))).
+	    enter().append("g").
+	    attr("class", "g").
+	    attr("transform", function(phylum){
+		return "translate("+x0(phylum)+",0)";});
+
+	rects.
+	    data(function(taxon){ 
+		return [ {k: "Study Average",
+			  v: window.average_data.taxa[taxon]},
+			 {k: "Your Average" ,
+			  v: window.user_data.taxa.averages[taxon]}, 
+			 {k: sample_id,
+			  v: sample[taxon]} ];
+	    }).
+	    transition().duration(750).
+	    delay(function(_, i){ return i * 50; }).
+	    attr("y", function(row){ return y(row.v); }).
+	    attr("height", function(row){ return height-y(row.v); });
+
+	d3.selectAll(".avg_legend text").
+	    data(["Study Average", "Your Average", sample_id]).
+	    text(identity);
+
+	window.update_diet( document.getElementById("diet_chart_selector") );
+    }
+
+
 
 };
