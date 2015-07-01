@@ -1,15 +1,14 @@
 ###
 # Config
 
-debug = False
+debug = True
 map_file = "./input/map.txt"
 diet_data = "./input/diet.txt"
 products_dir = "products"
-database_dir = "/local/ibdmdb/hmp2-visualizations/leveldb"
+database_dir = "/home/rschwager/anadama_dev/databases/hmp2vis-leveldb"
 
 class web:
-    host = "127.0.0.1"
-    port = "8765"
-    #prefix_url = "/patient" #no prefix by default
-    prefix_url = "/participant" #no prefix by default
+    host = "0.0.0.0"
+    port = "8081"
+    prefix_url = "" 
     static_url_base = "https://ibdmdb.org/static/"
