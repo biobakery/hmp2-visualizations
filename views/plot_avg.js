@@ -14,8 +14,6 @@ window.plot_avg = function(){
     var y = d3.scale.linear().
 	range([height, 0]);
     
-    var color = d3.scale.category10();
-    
     var xAxis = d3.svg.axis().
 	scale(x0).
 	orient("bottom");
@@ -138,12 +136,6 @@ window.plot_avg = function(){
 	};
     }
 
-
-    x0.domain(data[0].
-	      map(getattr("Taxon")).map(phylum).
-	      filter(abd_filter(newest_sample)));
-    x1.domain(["Study Average", "Your Average", samplenames[latest]]).
-	rangeRoundBands([0, x0.rangeBand()]);
     y.domain([ 0, d3.max(allpoints, function(obj){ return obj.y; }) ]);
 
     dropdown.selectAll("option").
@@ -153,83 +145,73 @@ window.plot_avg = function(){
 	attr("selected", function(_, i){ return i == latest; }).
 	text(identity);
 
-    var legend = svg.selectAll(".avg_legend").
-	data(["Study Average", "Your Average", samplenames[latest]]).
-	enter().append("g").
-	attr("class", "avg_legend").
-	attr("transform", function(row, idx){ 
-	    return "translate(0,"+(idx*20)+")"; 
-	});
 
-    legend.append("rect").
-	attr("x", width-margin.left-18).
-	attr("width", 18).
-	attr("height", 18).
-	style("fill", color);
-
-    legend.append("text").
-	attr("x", width-margin.left-24).
-	attr("y", 9).
-	attr("dy", ".35em").
-	style("text-anchor", "end").
-	text(identity);
-
-    svg.append("g").
+    var xAxis_g = svg.append("g").
 	attr("class", "x axis").
-	attr("transform","translate(0,"+height+")").
-	call(xAxis).
-	  selectAll("text").
-	attr("transform", "rotate(35)").
-	style("text-anchor", "start");
+	attr("transform","translate(0,"+height+")");
 
     svg.append("g").
 	attr("class", "y axis").
 	call(yAxis);
 
-    var taxon = svg.selectAll(".taxon").
-	data(data[0].map(getattr("Taxon")).filter(abd_filter(newest_sample))).
-	  enter().append("g").
-	attr("class", "g").
-	attr("transform", function(phylum){
-	    return "translate("+x0(phylum)+",0)";});
+    var taxon = svg.selectAll(".taxon");
 
-    var rects = taxon.selectAll("rect").
-	data(function(taxon){
-	    return [
-		{k: "Study Average",
-		 v: window.average_data.taxa[taxon]},
-		{k: "Your Average" ,
-		 v: window.user_data.taxa.averages[taxon]}, 
-		{k: samplenames[latest],
-		 v: window.user_data.taxa.instances[latest][taxon]}
-	    ];
-	}).
-	  enter().append("rect").
-	attr("width", x1.rangeBand()).
-	attr("x", function(row){ return x1(row.k); }).
-	attr("y", function(row){ return y(row.v); }).
-	attr("height", function(row){ return height-y(row.v); }).
-	style("fill", function(row){ return color(row.k); }).
-	style("stroke", "#000");
-
-    window.update_bar = function(el) {
+    window.update_bar = function(el, update_diet) {
 	var sample_id = el.value
 	, i = parseFloat(sample_id.replace(/.*\.(\d+)$/, '$1'))
-	, sample = window.user_data.taxa.instances[i];
+	, sample = window.user_data.taxa.instances[i]
+	, sample_phyla = data[0].map(getattr("Taxon")).
+	    map(phylum).
+	    filter(abd_filter(sample));
 
-	x0.domain(data[0].map(getattr("Taxon")).
-		  map(phylum).
-		  filter(abd_filter(sample)));
+	x0.domain(sample_phyla);
+	x1.domain(["Study Average", "Your Average", sample_id]).
+	    rangeRoundBands([0, x0.rangeBand()]);
 
-	taxon.
-	    data(data[0].map(getattr("Taxon")).
-		 filter(abd_filter(newest_sample))).
+	xAxis.scale(x0);
+
+	xAxis_g.call(xAxis).
+	  selectAll("text").
+	attr("transform", "rotate(35)").
+	style("text-anchor", "start");
+
+	var color = d3.scale.category10();
+    
+	var legend = svg.selectAll(".avg_legend").
+	    data(["Study Average", "Your Average", sample_id]).
+	    enter().append("g").
+	    attr("class", "avg_legend").
+	    attr("transform", function(row, idx){ 
+		return "translate(0,"+(idx*20)+")"; 
+	    });
+
+	legend.append("rect").
+	    attr("x", width-margin.left-18).
+	    attr("width", 18).
+	    attr("height", 18).
+	    style("fill", color);
+
+	legend.append("text").
+	    attr("x", width-margin.left-24).
+	    attr("y", 9).
+	    attr("dy", ".35em").
+	    style("text-anchor", "end").
+	    text(identity);
+
+
+	if (taxon.data().length > 0) {
+	    taxon = taxon.remove();
+	    taxon = taxon.data([]);
+	}
+
+	taxon = taxon.
+	    data(sample_phyla).
 	    enter().append("g").
 	    attr("class", "g").
 	    attr("transform", function(phylum){
 		return "translate("+x0(phylum)+",0)";});
 
-	rects.
+	taxon.selectAll("rect").
 	    data(function(taxon){ 
 		return [ {k: "Study Average",
 			  v: window.average_data.taxa[taxon]},
@@ -238,18 +220,27 @@ window.plot_avg = function(){
 			 {k: sample_id,
 			  v: sample[taxon]} ];
 	    }).
-	    transition().duration(750).
-	    delay(function(_, i){ return i * 50; }).
-	    attr("y", function(row){ return y(row.v); }).
-	    attr("height", function(row){ return height-y(row.v); });
+	      enter().append("rect").
+	    attr("width", x1.rangeBand()).
+	    attr("height", 0).
+	    attr("x", function(row){ return x1(row.k); }).
+	    attr("y", height).
+	    style("fill", function(row){ return color(row.k); }).
+	    style("stroke", "#000");
 
+	taxon.selectAll("rect").
+	    transition().duration(750).
+	    attr("height", function(row){ return height-y(row.v); }).	    
+	    attr("y", function(row){ return y(row.v); });
+	    
 	d3.selectAll(".avg_legend text").
 	    data(["Study Average", "Your Average", sample_id]).
 	    text(identity);
 
-	window.update_diet( document.getElementById("diet_chart_selector") );
+	if (update_diet !== false)
+	    window.update_diet(
+		document.getElementById("diet_chart_selector")
+	    );
     }
-
-
-
+    window.update_bar(document.getElementById("avg_chart_selector"), false);
 };
