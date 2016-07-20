@@ -39,6 +39,16 @@ def count(iterable):
     return sum(1 for _ in iterable)
 
 
+def which(to_take_iter, idxs):
+    """`idxs` **must** be sorted. """
+    idxs = iter(idxs)
+    j = next(idxs)
+    for i, item in enumerate(to_take_iter):
+        if i == j:
+            yield item
+            j = next(idxs)
+
+
 def take(to_take_iter, should_take_iter):
     for to_yield, should_yield in izip(to_take_iter, should_take_iter):
         if should_yield:

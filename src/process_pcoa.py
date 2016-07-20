@@ -2,6 +2,7 @@ import sys
 import json
 import contextlib
 import multiprocessing
+from collections import defaultdict
 from itertools import combinations
 
 import numpy as np
@@ -9,15 +10,27 @@ from cogent.cluster.nmds import NMDS
 
 from util import take, get
 
-def load_bioms(biom_fnames):
+def load_bioms(biom_fnames, hsum_to=None):
+    if hsum_to:
+        taxon_name = lambda row: next(iter(
+            item.replace(hsum_to, '') for item in row['metadata']['taxonomy']
+            if item.startswith(hsum_to)
+        ))
+
     biom_fs = map(open, biom_fnames)
     with contextlib.nested(*biom_fs):
         for f in biom_fs:
             data = json.load(f)
-            yield dict([
-                (taxa['id'], abd[-1])
-                for taxa, abd in zip(data['rows'], data['data'])
-            ])
+            if hsum_to:
+                s_totals = defaultdict(float)
+                for row, abd in zip(data['rows'], data['data']):
+                    s_totals[taxon_name(row)] += float(abd[-1])
+                yield dict(s_totals)
+            else:
+                yield dict([
+                    (taxa['id'], abd[-1])
+                    for taxa, abd in zip(data['rows'], data['data'])
+                ])
 
 
 def abundance_medoids(dicts):
@@ -79,8 +92,8 @@ def output(pcoa_arr):
         print name, '\t', x, '\t', y
 
 
-def main(biom_fnames, do_filter=False, n_procs=4):
-    all_abds = load_bioms(biom_fnames)
+def main(biom_fnames, do_filter=False, n_procs=4, hsum_to="g__"):
+    all_abds = load_bioms(biom_fnames, hsum_to=hsum_to)
     dist_arr = dist_array(all_abds, len(biom_fnames), n_procs=n_procs)
     if do_filter:
         dist_arr, mask = rm_outliers(dist_arr)

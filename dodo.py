@@ -15,6 +15,7 @@ sys.path.append(os.path.join(here, "src"))
 
 import models
 from util import update_with, peek, partition_by, avg_by_vals, take, dedupe
+from util import take
 import process_diet
 import process_pcoa
 
@@ -28,8 +29,9 @@ def samplekey(sample):
     return (sample_id*1000)+instance
 
 metadata = sorted(raw_meta, key=samplekey)
-HASHED_MAP = dict([ (name.split('.', 1)[0], hashed)
-                    for name, _, hashed in metadata ])
+HASHED_MAP = defaultdict(list)
+for name, _, hashed in metadata:
+    HASHED_MAP[name.split('.', 1)[0]].append(hashed)
 
 DOIT_CONFIG = {
     'default_tasks': ['gen'],
@@ -41,17 +43,21 @@ db = models.initialize_db(settings.database_dir)
 
 firstitem = itemgetter(0)
 
+def extract_phylum(biom_row):
+    for item in biom_row['metadata']['taxonomy']:
+        if item.startswith("p__"):
+            return item.replace("p__", '')
+    return None
+
 def phylum_abd(biom_fname):
-    phylum = lambda row: next(iter(
-        item.replace('p__', '') for item in row['metadata']['taxonomy']
-        if item.startswith('p__')
-    ))
     with open(biom_fname) as f:
         data = json.load(f)
 
     phyl_totals = defaultdict(int)
     for row, datapoint in zip(data['rows'], data['data']):
-        phyl_totals[phylum(row)] += float(datapoint[-1])
+        phyl_name = extract_phylum(row)
+        if phyl_name:
+            phyl_totals[phyl_name] += float(datapoint[-1])
 
     return avg_by_vals(phyl_totals)
 
@@ -155,19 +161,24 @@ def update_db_diet(diet_fname):
     def _users():
         for sample in partition_by(samples, firstitem):
             first, sample = peek(sample)
-            pid = HASHED_MAP.get(first[0], '.').split('.')[0]
-            if not pid:
+            pids = HASHED_MAP.get(first[0])
+            if not pids:
                 # skip samples in diet_data that are missing in
                 # taxonomy data
+                msg = "Unable to find subject %s in map.txt"%(first[0])
+                print >> sys.stderr, msg
                 continue 
+            idxs = list(sorted(int(p.split('.', 1)[1]) for p in pids))
 
-            user = models.User(pid, db=db, load=True)
+            user = models.User(pids[0].split('.', 1)[0], db=db, load=True)
             user.state[models.User.DIET_KEY] = { "instances": list(),
                                                  "averages": None }
+            idxs = set(idxs)
             user_avg = dict([ (k, [0,0,0,0,0]) for k in fields ])
-            for instance in sample:
+            for i, instance in enumerate(sample):
                 d = dict(zip(fields, instance[1:]))
-                user.state[models.User.DIET_KEY]['instances'].append(d)
+                if i in idxs:
+                    user.state[models.User.DIET_KEY]['instances'].append(d)
                 update_with(user_avg, d, _update_count)
                 update_with(global_avg, d, _update_count)
             user.state[models.User.DIET_KEY]["averages"] = user_avg
